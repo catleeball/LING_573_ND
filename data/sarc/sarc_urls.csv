@@ -1,0 +1,10 @@
+https://nlp.cs.princeton.edu/old/SARC/2.0/raw/comments.json.bz2,raw,comments.json.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/raw/key.csv,raw,key.csv
+https://nlp.cs.princeton.edu/old/SARC/2.0/raw/sarc.csv.bz2,raw,sarc.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/raw/sarc_09-12.csv.bz2,raw,sarc_09-12.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/raw/sequences.csv.bz2,raw,sequences.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/main/comments.json.bz2,main,comments.json.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/main/test-balanced.csv.bz2,main,test-balanced.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/main/test-unbalanced.csv.bz2,main,test-unbalanced.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/main/train-balanced.csv.bz2,main,train-balanced.csv.bz2
+https://nlp.cs.princeton.edu/old/SARC/2.0/main/train-unbalanced.csv.bz2,main,train-unbalanced.csv.bz2
