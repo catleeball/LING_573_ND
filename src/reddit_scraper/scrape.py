@@ -1,17 +1,22 @@
+import io
 from datetime import datetime
-import sys
 from enum import Enum
 from functools import cached_property
-import re
+from pathlib import Path
 import praw
 from praw.models import Comment, Submission
+import re
+import sys
+from zipfile import ZipFile, ZIP_BZIP2
 # Note that secrets.py is in the .gitignore; it's just a file with the constants we import here set
 from secrets import CLIENT_ID, CLIENT_SECRET
 
 
-# Max posts to fetch; low value for testing
-POST_LIMIT = 100
+# Filepath relative from root of repository. Run this script from the repo root, e.g. `python src/reddit_scraper/scrape.py` from `./LING_573_ND`
+DATA_DIR = 'data/scraped'
 
+# Max posts to fetch; low value for testing
+POST_LIMIT = 10
 
 # User agent format suggested here: https://praw.readthedocs.io/en/stable/getting_started/quick_start.html#prerequisites
 USER_AGENT = 'macos:tone_indicator_scraper:v0.1 (by u/__eel__)'
@@ -45,6 +50,9 @@ class TextType(Enum):
         raise ValueError(f'Argument `post` has type `{type(post)}`. '
                          'Expected one of: praw.models.Submission, praw.models.Comment')
 
+    def __str__(self):
+        return self.name
+
 
 def get_post_text(post: Comment | Submission) -> str:
     if isinstance(post, Comment):
@@ -59,18 +67,29 @@ class TextSample:
     """Container for relevant data about a reddit submission or comment. Note the cached properties for lazy parsing."""
     id:        str
     text_type: TextType
+    subreddit: str
     text:      str
 
-    def __init__(self, post: Comment | Submission):
+    def __init__(self, post: Comment | Submission, subreddit_name: str):
         self.id        = post.id
         self.text_type = TextType.from_post(post)
-        self.text      = get_post_text(post)
+        self.subreddit = subreddit_name
+        # replace tabs with spaces since we're going to use tabs as delimiters when serializing
+        self.text      = get_post_text(post).replace('\t', ' ')
 
-    @cached_property
+    def to_tsv_row(self) -> str:
+        """Return a list of attributes we want to serialize, delimited by tabs."""
+        return '\t'.join([
+            self.id,
+            self.text_type.name,
+            self.subreddit,
+            str(int(self.is_sarcastic())),
+            str(int(self.is_serious())),
+        ])
+
     def is_sarcastic(self) -> bool:
         return bool(len(self.sarcastic_tags))
 
-    @cached_property
     def is_serious(self) -> bool:
         return bool(len(self.serious_tags))
 
@@ -157,9 +176,9 @@ def scrape_subreddit(
     # Iterate submissions and their comments
     for submission in reddit_client.subreddit(subreddit_name).new(limit=post_limit):
         submission: Submission
-        samples.append(TextSample(submission))
+        samples.append(TextSample(submission, subreddit_name))
         for comment in submission.comments.list():
-            samples.append(TextSample(comment))
+            samples.append(TextSample(comment, subreddit_name))
 
     return samples
 
@@ -201,8 +220,8 @@ def analyze_samples(samples: list[TextSample], subreddits_sampled: str) -> str:
         known_tags_seen.update(set(sample.tags))
         unknown_tags_seen.update(set(sample.unknown_tags))
 
-        samples_with_sarcasm_count += int(sample.is_sarcastic)
-        samples_with_serious_count += int(sample.is_serious)
+        samples_with_sarcasm_count += int(sample.is_sarcastic())
+        samples_with_serious_count += int(sample.is_serious())
 
         all_tag_count = len(sample.all_possible_tags)
         known_tag_count = len(sample.tags)
@@ -269,15 +288,47 @@ rate_of_posts_with_no_detected_tags:    {rate_of_posts_with_no_detected_tags}%
 '''
 
 
+def serialize_data(data: list[TextSample]):
+    timestamp = datetime.now().isoformat()
+    output_bz2_file = f'{DATA_DIR}/{timestamp}_reddit_scrape.tsv.bz2'
+    output_file = f'{timestamp}_reddit_scrape.tsv'
+
+    rows = []
+    for sample in data:
+        rows.append(sample.to_tsv_row())
+    rows = '\n'.join(rows)
+
+    print(f'[{datetime.now()}] DEBUG: Compressing and writing scraped data to {output_bz2_file}')
+
+    buffer = io.BytesIO()
+    with ZipFile(
+        file=buffer,
+        mode='w',
+        compression=ZIP_BZIP2,
+        compresslevel=9,
+    ) as zipfile:
+        zipfile.writestr(output_file, str.encode(rows, 'utf-8'))
+
+    print(f'[{datetime.now()}] DEBUG: Compression done, writing to disk')
+
+    with open(output_bz2_file, 'wb') as f:
+        f.write(buffer.getvalue())
+
+    print(f'[{datetime.now()}] DEBUG: Successfully wrote to disk {output_bz2_file}')
+
+
 def main():
     # TODO: use config file / cli flags / env vars for configurations rather than lots of constants
     # TODO: add unit tests
     print(f'DEBUG [{datetime.now()}]: Starting...')
 
+    if not Path(DATA_DIR).exists():
+        raise ValueError(f"Can't find data dir `{DATA_DIR}`. Are you running this from the root of the repository? e.g. `python src/reddit_scraper/scrape.py` from `./LING_573_ND`")
+
     reddit_client = read_only_reddit_client()
     subreddits = ('neurodivergent', )
 
-    print(f'DEBUG [{datetime.now()}]: Got client. Fetching posts...')
+    print(f'DEBUG [{datetime.now()}]: Got client. Fetching {POST_LIMIT} posts...')
 
     sample_sets: list[list[TextSample]] = []
 
@@ -295,6 +346,7 @@ def main():
     for sample_set in sample_sets:
         analysis = analyze_samples(sample_set, subreddits_str)
         print(analysis)
+        serialize_data(sample_set)
         with open('scrape_log.txt', 'w') as f:
             f.write(analysis)
 
