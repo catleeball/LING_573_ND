@@ -155,7 +155,11 @@ def read_only_reddit_client() -> praw.Reddit:
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
         user_agent=USER_AGENT,
-    )
+        ratelimit_seconds=900,  # this is the maxiumum rate limit; by default the max backoff it respects is 4s, but the
+                                # api will ask us to backoff as much as 15 mins. Waiting the full backoff period helps
+    )                           # ensure that we won't hit a ratelimit exception when issuing requests.
+                                # Praw does its network requests through a generator which exits if it hits an exception
+                                # even if the exception is handled with try/except. :(
 
 
 def scrape_subreddit(
@@ -185,7 +189,7 @@ def scrape_subreddit(
     return samples
 
 
-def analyze_samples(samples: list[TextSample], subreddits_sampled: str) -> str:
+def analyze_samples(samples: list[TextSample], subreddit: str) -> str:
     """Gather stats about the samples gathered."""
     sample_count: int = len(samples)
     samples = set(samples)
@@ -262,7 +266,7 @@ def analyze_samples(samples: list[TextSample], subreddits_sampled: str) -> str:
     rate_of_posts_with_no_detected_tags:   float = (samples_with_no_possible_tags_count / unique_sample_count) * 100
 
     return f'''[{datetime.now()}]
------  Analysis of {POST_LIMIT} submissions for each subreddit(s): {subreddits_sampled}  -----
+-----  Analysis of {POST_LIMIT} submissions for each subreddit(s): {subreddit}  -----
 
 unique_sample_count:                 {unique_sample_count}
 duplicate_sample_count:              {duplicate_sample_count}
@@ -293,10 +297,10 @@ rate_of_posts_with_no_detected_tags:    {rate_of_posts_with_no_detected_tags}%
 '''
 
 
-def serialize_data(data: list[TextSample]):
+def serialize_data(data: list[TextSample], subreddit: str):
     timestamp = datetime.now().isoformat()
-    output_bz2_file = f'{DATA_DIR}/{timestamp}_reddit_scrape.tsv.bz2'
-    output_file = f'{timestamp}_reddit_scrape.tsv'
+    output_bz2_file = f'{DATA_DIR}/{timestamp}_{subreddit}_reddit_scrape.tsv.bz2'
+    output_file = f'{timestamp}_{subreddit}_reddit_scrape.tsv'
 
     rows = []
     for sample in data:
@@ -331,27 +335,41 @@ def main():
         raise ValueError(f"Can't find data dir `{DATA_DIR}`. Are you running this from the root of the repository? e.g. `python src/reddit_scraper/scrape.py` from `./LING_573_ND`")
 
     reddit_client = read_only_reddit_client()
-    subreddits = ('neurodivergent', )
+    subreddits = (
+        'neurodivergent',
+        'NeurodivergentLGBTQ',
+        'AutismTranslated',
+        'autismmemes',
+        'AutisticPride',
+        'Autism',
+        'AutisticAdults',
+        'ADHD',
+        'adhdwomen',
+        'aspergirls',
+        'autisminwomen',
+    )
 
-    print(f'DEBUG [{datetime.now()}]: Got client. Fetching {POST_LIMIT} posts...')
+    print(f'DEBUG [{datetime.now()}]: Got client. Fetching {POST_LIMIT} posts')
 
     sample_sets: list[list[TextSample]] = []
 
     for sub in subreddits:
+        print(f'DEBUG [{datetime.now()}]: Fetching posts in subreddit {sub}')
         sample_sets.append(
             scrape_subreddit(
                 reddit_client=reddit_client,
                 subreddit_name=sub,
                 post_limit=POST_LIMIT))
 
-    print(f'DEBUG [{datetime.now()}]: Got posts. Parsing and analyzing...')
+    print(f'DEBUG [{datetime.now()}]: Got posts. Parsing and analyzing')
 
     subreddits_str = ', '.join(subreddits)
 
-    for sample_set in sample_sets:
+    for subreddit, sample_set in zip(subreddits, sample_sets):
+        print(f'DEBUG [{datetime.now()}]: Analyzing subreddit {subreddit}')
         analysis = analyze_samples(sample_set, subreddits_str)
         print(analysis)
-        serialize_data(sample_set)
+        serialize_data(sample_set, subreddit)
         with open('scrape_log.txt', 'w') as f:
             f.write(analysis)
 
