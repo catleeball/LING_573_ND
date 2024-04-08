@@ -1,0 +1,28 @@
+[2024-04-05 18:05:26.616107]
+-----  Analysis of 10 submissions for each subreddit(s): neurodivergent  -----
+
+unique_sample_count:                 24
+duplicate_sample_count:              0
+submission_count:                    14
+comment_count:                       10
+
+total_tag_count:                     0
+total_known_tag_count:               0
+total_unknown_tag_count:             0
+
+samples_with_sarcasm_count:          0
+samples_with_serious_count:          0
+samples_with_unknown_tags_count:     0
+samples_with_no_known_tags_count:    24
+samples_with_no_possible_tags_count: 24
+
+Known tags which were not observed:  /sarcasm, \srs, /s, /srs, \s, \sarcastic, \sarc, /sarcastic, \sarcasm, /serious, /sarc, \serious
+Unknown tags observed:               
+
+rate_of_posts_containing_serious_tags:  0.0%
+rate_of_posts_containing_known_tags:    0.0%
+rate_of_posts_containing_sarcasm_tags:  0.0%
+rate_of_posts_containing_tags:          0.0%
+rate_of_posts_with_no_known_tags:       100.0%
+rate_of_posts_with_no_detected_tags:    100.0%
+
