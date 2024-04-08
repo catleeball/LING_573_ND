@@ -69,13 +69,14 @@ class TextSample:
     text_type: TextType
     subreddit: str
     text:      str
+    user:      str
 
     def __init__(self, post: Comment | Submission, subreddit_name: str):
         self.id        = post.id
         self.text_type = TextType.from_post(post)
         self.subreddit = subreddit_name
-        # replace tabs with spaces since we're going to use tabs as delimiters when serializing
-        self.text      = get_post_text(post).replace('\t', ' ')
+        self.text      = get_post_text(post).replace('\t', ' ')  # replace tabs with spaces since we're going to use tabs as delimiters when serializing
+        self.user      = post.author  # both comments and submissions have an `author` attribute
 
     def to_tsv_row(self) -> str:
         """Return a list of attributes we want to serialize, delimited by tabs."""
@@ -83,6 +84,7 @@ class TextSample:
             self.id,
             self.text_type.name,
             self.subreddit,
+            self.user,
             str(int(self.is_sarcastic())),
             str(int(self.is_serious())),
         ])
@@ -246,9 +248,11 @@ def analyze_samples(samples: list[TextSample], subreddits_sampled: str) -> str:
         else:
             samples_with_unknown_tags_count += 1
 
+    tags_seen = known_tags_seen.union(unknown_tags_seen)
     known_tags_unseen = ALL_KNOWN_TAGS - known_tags_seen
     known_tags_unseen_str = ', '.join(known_tags_unseen)
     unknown_tags_seen_str = ', '.join(unknown_tags_seen)
+    all_tags_str = ', '.join(tags_seen)
 
     rate_of_posts_containing_sarcasm_tags: float = (samples_with_sarcasm_count / unique_sample_count) * 100
     rate_of_posts_containing_serious_tags: float = (samples_with_serious_count / unique_sample_count) * 100
@@ -275,8 +279,9 @@ samples_with_unknown_tags_count:     {samples_with_unknown_tags_count}
 samples_with_no_known_tags_count:    {samples_with_no_known_tags_count}
 samples_with_no_possible_tags_count: {samples_with_no_possible_tags_count}
 
-Known tags which were not observed:  {known_tags_unseen_str}
+All unique tags observed:            {all_tags_str}
 Unknown tags observed:               {unknown_tags_seen_str}
+Known tags which were NOT observed:  {known_tags_unseen_str}
 
 rate_of_posts_containing_serious_tags:  {rate_of_posts_containing_serious_tags}%
 rate_of_posts_containing_known_tags:    {rate_of_posts_containing_known_tags}%
