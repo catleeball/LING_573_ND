@@ -15,8 +15,8 @@ from secrets import CLIENT_ID, CLIENT_SECRET
 # Filepath relative from root of repository. Run this script from the repo root, e.g. `python src/reddit_scraper/scrape.py` from `./LING_573_ND`
 DATA_DIR = 'data/scraped'
 
-# Max posts to fetch; low value for testing
-POST_LIMIT = 10
+# Max posts to fetch; use a low value for testing
+POST_LIMIT = 1_000_000
 
 # User agent format suggested here: https://praw.readthedocs.io/en/stable/getting_started/quick_start.html#prerequisites
 USER_AGENT = 'macos:tone_indicator_scraper:v0.1 (by u/__eel__)'
