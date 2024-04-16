@@ -19,5 +19,7 @@ $ pip install -r requirements.txt
 ```
 $ pip freeze > requirements.txt
 ```
+* When running jupyter notebooks, make sure to set the kernel to the same python as the conda environment.
+
 
 
