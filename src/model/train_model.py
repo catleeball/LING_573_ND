@@ -1,30 +1,18 @@
-import torch
 import numpy as np
 import evaluate
 import json
 from datasets import Dataset
 from transformers import AutoTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
+from .utils import *
 
 
-project_root="~/LING_573_ND"
-data_dir = f"{project_root}/data/sarc"
-model_dir = f"{project_root}/outputs/models"
-train_filename = f"{data_dir}/toy_comments-train-balanced.json"
-eval_filename = f"{data_dir}/dev-comments-balanced.json"
-
-def preprocess_func(data, text_key="text"):
-    return tokenizer(data[text_key], truncation=True)
-
-
-def preprocess_data(raw_data):
-    data = [{"text": d["response"], "label": int(d["label"])} for d in raw_data]
-    dataset = Dataset.from_list(data)
-
-    encoded_dataset = dataset.map(preprocess_func)  
-
-    encoded_dataset = encoded_dataset.remove_columns('text')    # training doesn't work if there are text columns
-    return encoded_dataset.with_format("torch")
+# project_root="~/LING_573_ND/"
+project_root=""
+data_dir = f"{project_root}data/sarc/"
+model_dir = f"{project_root}outputs/models/"
+train_filename = f"{data_dir}toy_comments-train-balanced.json"
+eval_filename = f"{data_dir}dev-comments-balanced.json"
 
 
 # LOAD MODEL
@@ -39,16 +27,16 @@ model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2
 print("Loading data...")
 with open(train_filename) as f:
     train_data_raw = json.load(f)
-train_dataset = preprocess_data(train_data_raw)
+train_dataset = preprocess_data(train_data_raw, tokenizer)
 
 with open(eval_filename) as f:
     eval_data_raw = json.load(f)
-eval_dataset = preprocess_data(eval_data_raw[:10]) 
+eval_dataset = preprocess_data(eval_data_raw[:10], tokenizer) 
 
 
 # TRAIN MODEL
 training_args = TrainingArguments(
-    output_dir="sarc_bert",         # can do custom names
+    output_dir=model_dir,           # can do custom names
     evaluation_strategy = "epoch",
     save_strategy = "epoch",
     # push_to_hub=True,             # can push to hub instead of saving locally
@@ -57,15 +45,10 @@ training_args = TrainingArguments(
     logging_steps=1,                # to log loss from the first epoch
     load_best_model_at_end=True,
     metric_for_best_model="f1",     # default is loss
-    log_level="debug",
+    # log_level="debug",            # default is warning
     logging_strategy="epoch",
 )   
 
-f1_metric = evaluate.load("f1")
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    predictions = np.argmax(predictions, axis=1)
-    return f1_metric.compute(predictions=predictions, references=labels)
 
 trainer = Trainer(
     model=model,
@@ -79,4 +62,8 @@ trainer = Trainer(
 # TRAIN
 print("Beginning training...")
 trainer.train()
+
+# EVALUATE
+print("Evaluating on dev set...")
+print(trainer.evaluate())
 print("Done!")
