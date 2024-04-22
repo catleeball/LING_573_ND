@@ -26,13 +26,15 @@ After activating your conda environment with the proper requirements and system 
 #### Data Pre-processing
 
 #### Training 
+```
 $ python -m src.model.train_model
-
+```
 This training process will output training checkpoint directories to the outputs/models/ directory of the repo. Once training is finished, upload all files from the last checkpoint to Hugging Face on the Model Hub and ensure that your HF model repo is public. 
 
 #### Evaluation
+```
 $ python -m src.model.evaluate
-
+```
 **The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. This is the only step you need to run if you are not re-training your own model.**
 If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
 
