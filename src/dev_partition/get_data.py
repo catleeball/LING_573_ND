@@ -5,7 +5,7 @@ import argparse
 if __name__ == "__main__":
 
     default_url = "https://nlp.cs.princeton.edu/old/SARC/2.0/main/train-balanced.csv.bz2"
-    default_filename = "train-balanced.csv.bz2"
+    default_filename = "../../data/sarc/train-balanced.csv.bz2"
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", type=str, default=default_url, help="Enter the URL (ending in the filename) to download the file from.")

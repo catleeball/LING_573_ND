@@ -6,7 +6,7 @@ if __name__ == "__main__":
     # command line arguments:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, help="Name of the csv file that contains comment codes.")
-    parser.add_argument("--dataset", type=str, default="comments.json", help="The full dataset JSON to retrieve comments from.")
+    parser.add_argument("--dataset", type=str, default="../../data/sarc/comments.json", help="The full dataset JSON to retrieve comments from.")
     parser.add_argument("--output", type=str, help="Name of the json file which will contain program output.")
     args = parser.parse_args()
     
