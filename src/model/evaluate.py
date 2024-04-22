@@ -7,7 +7,7 @@ from .utils import *
 import torch
 
 # Define the model name on Hugging Face
-model_name = "Jade13/LING_573_ND_Trained_D2"
+model_name = "Jade13/LING_573_ND_Trainer_D2_NoDev"
 
 # Load the model and tokenizer from Hugging Face
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -17,7 +17,7 @@ model = BertForSequenceClassification.from_pretrained(model_name)
 # project_root="~/LING_573_ND/"
 project_root=""
 data_dir = f"{project_root}data/sarc/"
-test_filename = f"{data_dir}.json" # TODO: fill in filename
+test_filename = f"{data_dir}dev-comments-balanced.json" # TODO: fill in filename
 
 # Load the dev dataset
 with open(test_filename) as f:
