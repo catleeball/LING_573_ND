@@ -36,5 +36,5 @@ This training process will output training checkpoint directories to the outputs
 $ python -m src.model.evaluate
 ```
 **The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. This is the only step you need to run if you are not re-training your own model.**
-If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
+Note that `outputs/D2/d2.out` contains a printed tensor of the probabilities for each class label, so the highest probability represents the model prediction. The first column represents 0 or Not Sarcastic and the second column represents 1 or Sarcastic. If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
 
