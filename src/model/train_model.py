@@ -11,7 +11,7 @@ from .utils import *
 project_root=""
 data_dir = f"{project_root}data/sarc/"
 model_dir = f"{project_root}outputs/models/"
-train_filename = f"{data_dir}toy_comments-train-balanced.json"
+train_filename = f"{data_dir}train-no-dev-comments-balanced.json"
 eval_filename = f"{data_dir}dev-comments-balanced.json"
 
 
