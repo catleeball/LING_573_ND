@@ -55,7 +55,17 @@ print(probabilities)
 print(predictions.metrics)
 
 with open(model_output_file, "w") as outputs:
-    outputs.write(str(probabilities)) 
+    for p in range(0, len(probabilities)):
+        true_label = encoded_test_dataset[p]["label"]
+        prob_0 = float(probabilities[p][0])
+        prob_1 = float(probabilities[p][1])
+        if prob_0 < prob_1:
+            pred = 1
+        else:
+            pred = 0
+        outputs.write(f"pred: {pred}, gold: {true_label}, probs: {prob_0}, {prob_1}\n")
 
 with open(metrics_file, "w") as results:
-    results.write(str(predictions.metrics))
+    metrics = predictions.metrics
+    for m in metrics:
+        results.write(f"{m}: {metrics[m]}\n")
