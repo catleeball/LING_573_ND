@@ -24,13 +24,13 @@ $ pip list --format=freeze > requirements.txt
 ## Running the system
 After **activating your conda environment** with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
 
-### Running end-to-end
+### Running end-to-end:
 The following script runs the data preprocessing and model evaluation on the dev set, end to end. This is also the script used in `D2.cmd`.
 ```
 src/run_evaluate.sh
 ```
 
-### Running modularly
+### Running modularly:
 #### Data Pre-processing
 ```
 src/dev_partition/make_dev_set.sh
@@ -47,7 +47,7 @@ This training process will output training checkpoint directories to the outputs
 ```
 $ python -m src.model.evaluate
 ```
-**The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. This is the only step you need to run if you are not re-training your own model.**
+The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
 
 Note that `outputs/D2/d2.out` contains a printed tensor of the probabilities for each class label, so the highest probability represents the model prediction. The first column represents 0 or Not Sarcastic and the second column represents 1 or Sarcastic. If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
 
