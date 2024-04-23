@@ -1,1 +1,5 @@
-{'test_loss': 1.4217102527618408, 'test_f1': 0.7099282748206871, 'test_runtime': 3757.7092, 'test_samples_per_second': 6.841, 'test_steps_per_second': 0.107}
+test_loss: 1.4217102527618408
+test_f1: 0.7099282748206871
+test_runtime: 3760.5947
+test_samples_per_second: 6.836
+test_steps_per_second: 0.107
