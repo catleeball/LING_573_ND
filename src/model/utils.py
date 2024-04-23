@@ -1,14 +1,12 @@
 import numpy as np
 import evaluate
 from datasets import Dataset
-from transformers import AutoTokenizer, BertForSequenceClassification
-from transformers import TrainingArguments, Trainer
 
 
 
 def preprocess_data(raw_data, tokenizer):
     def preprocess_func(data, text_key="text"):
-        return tokenizer(data[text_key], truncation=True)
+        return tokenizer(data[text_key], padding='max_length', truncation=True, max_length=512)
 
     data = [{"text": d["response"], "label": int(d["label"])} for d in raw_data]
     dataset = Dataset.from_list(data)

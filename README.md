@@ -17,12 +17,19 @@ $ pip install -r requirements.txt
 * The above installation ensures that you can do `pip install`, using the pip that comes natively within the conda environment. You can check by running `which pip`. 
 * If you add more packages to the project, make sure to update the `requirements.txt`:
 ```
-$ pip freeze > requirements.txt
+$ pip list --format=freeze > requirements.txt
 ```
 * When running jupyter notebooks, make sure to set the kernel to the same python as the conda environment.
 
-## Running the End-to-End System
-After activating your conda environment with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
+## Running the system
+After **activating your conda environment** with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
+
+#### Running end to end
+The following script runs the data preprocessing and model evaluation on the dev set, end to end. This is also the script used in `D2.cmd`.
+```
+src/run_evaluate.sh
+```
+
 #### Data Pre-processing
 
 #### Training 
