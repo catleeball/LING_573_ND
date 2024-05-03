@@ -43,6 +43,11 @@ $ python -m src.model.train_model
 ```
 This training process will output training checkpoint directories to the outputs/models/ directory of the repo. Once training is finished, upload all files from the last checkpoint to Hugging Face on the Model Hub and ensure that your HF model repo is public. 
 
+For running training using docker-compose, 
+```bash
+docker-compose up -d train-model
+```
+
 #### Evaluation
 ```
 $ python -m src.model.evaluate

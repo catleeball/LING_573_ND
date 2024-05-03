@@ -1,9 +1,7 @@
-import numpy as np
-import evaluate
 import json
-from datasets import Dataset
 from transformers import AutoTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
+import torch
 from .utils import *
 
 
@@ -20,6 +18,9 @@ print("Loading model...")
 pretrained_checkpoint = "google-bert/bert-base-uncased"  
 id2label = {0: "not_sarcastic", 1: "sarcastic"} 
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Training model using device: {device}")
+
 tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
 model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)
 
@@ -31,7 +32,7 @@ train_dataset = preprocess_data(train_data_raw, tokenizer, context=True)
 
 with open(eval_filename) as f:
     eval_data_raw = json.load(f)
-eval_dataset = preprocess_data(eval_data_raw[:10], tokenizer, context=True) 
+eval_dataset = preprocess_data(eval_data_raw, tokenizer, context=True) 
 
 
 # TRAIN MODEL
@@ -45,7 +46,7 @@ training_args = TrainingArguments(
     logging_steps=1,                # to log loss from the first epoch
     load_best_model_at_end=True,
     metric_for_best_model="f1",     # default is loss
-    # log_level="debug",            # default is warning
+    log_level="debug",              # default is warning
     logging_strategy="epoch",
 )   
 
