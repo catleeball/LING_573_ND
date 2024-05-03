@@ -12,7 +12,7 @@ cd $PROJECT_ROOT/src/dev_partition/
 ./make_dev_set.sh $EVAL_DATA_FILE
 cd $PROJECT_ROOT
 
-# run evaluation
-echo "Evaluating..."
-python -m src.model.evaluate $MODEL_NAME $EVAL_DATA_FILE $MODEL_OUTPUT_FILE $METRICS_FILE
+# # run evaluation
+# echo "Evaluating..."
+# python -m src.model.evaluate $MODEL_NAME $EVAL_DATA_FILE $MODEL_OUTPUT_FILE $METRICS_FILE
 
