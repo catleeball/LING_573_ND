@@ -45,7 +45,7 @@ This training process will output training checkpoint directories to the outputs
 
 For running training using docker-compose, 
 ```bash
-docker-compose up -d train-model
+docker-compose up -d train-context-model # or train-base-model
 ```
 
 #### Evaluation

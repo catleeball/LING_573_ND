@@ -3,6 +3,7 @@ import argparse
 import torch
 from transformers import AutoTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
+from pathlib import Path
 from .utils import *
 
 
@@ -12,11 +13,11 @@ args = parser.parse_args()
 
 
 # project_root="~/LING_573_ND/"
-project_root=""
-data_dir = f"{project_root}data/sarc/"
-model_dir = f"{project_root}outputs/models/"
-train_filename = f"{data_dir}train-no-dev-comments-balanced.json"
-eval_filename = f"{data_dir}dev-comments-balanced.json"
+project_root = Path(__file__).cwd()
+data_dir = project_root / "data" / "sarc"
+model_dir = project_root / "outputs" / "context-models" if args.context else project_root / "outputs" / "base-models"
+train_filename = data_dir / "train-no-dev-comments-balanced.json"
+eval_filename = data_dir / "dev-comments-balanced.json"
 
 
 # LOAD MODEL
@@ -26,6 +27,7 @@ id2label = {0: "not_sarcastic", 1: "sarcastic"}
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Training model using device: {device}")
+print(f"Training context model: {args.context}")
 
 tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
 model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)

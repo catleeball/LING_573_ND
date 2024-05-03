@@ -1,5 +1,21 @@
 services:
-  train-model:
+  train-context-model:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: "python -u -m src.model.train_model --context"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+
+  train-base-model:
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,7 +28,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["0"]
+              device_ids: ["1"]
               capabilities: [gpu]
 
   test-cuda:
