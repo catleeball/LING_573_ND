@@ -17,7 +17,7 @@ eval_filename = f"{data_dir}dev-comments-balanced.json"
 
 # LOAD MODEL
 print("Loading model...")
-pretrained_checkpoint = "google-bert/bert-base-uncased"     # switch to large later
+pretrained_checkpoint = "google-bert/bert-base-uncased"  
 id2label = {0: "not_sarcastic", 1: "sarcastic"} 
 
 tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
@@ -27,11 +27,11 @@ model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2
 print("Loading data...")
 with open(train_filename) as f:
     train_data_raw = json.load(f)
-train_dataset = preprocess_data(train_data_raw, tokenizer)
+train_dataset = preprocess_data(train_data_raw, tokenizer, context=True)
 
 with open(eval_filename) as f:
     eval_data_raw = json.load(f)
-eval_dataset = preprocess_data(eval_data_raw[:10], tokenizer) 
+eval_dataset = preprocess_data(eval_data_raw[:10], tokenizer, context=True) 
 
 
 # TRAIN MODEL

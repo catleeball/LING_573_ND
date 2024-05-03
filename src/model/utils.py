@@ -3,17 +3,25 @@ import evaluate
 from datasets import Dataset
 
 
+def preprocess_data(raw_data, tokenizer, context=False):
+    def preprocess_func(data):
+        return tokenizer(data["response"], truncation=True, max_length=512)
+    
+    # concatenate in reverse order, separated by special token
+    def preprocess_func_context(data):
+        # text = data['response'] + tokenizer.sep_token + data['posts'][-1]
+        text = data['response']
+        context = data['posts'][-1]
+        return tokenizer(text, context, truncation=True, max_length=512)
 
-def preprocess_data(raw_data, tokenizer):
-    def preprocess_func(data, text_key="text"):
-        return tokenizer(data[text_key], padding='max_length', truncation=True, max_length=512)
-
-    data = [{"text": d["response"], "label": int(d["label"])} for d in raw_data]
+    data = [{"response": d["response"], 
+             "posts": d["posts"],
+             "label": int(d["label"])} for d in raw_data]
     dataset = Dataset.from_list(data)
 
-    encoded_dataset = dataset.map(preprocess_func)  
+    encoded_dataset = dataset.map(preprocess_func_context) if context else dataset.map(preprocess_func)  
 
-    encoded_dataset = encoded_dataset.remove_columns('text')    # training doesn't work if there are text columns
+    encoded_dataset = encoded_dataset.remove_columns(['response', "posts"])    # training doesn't work if there are text columns
     return encoded_dataset.with_format("torch")
 
 
