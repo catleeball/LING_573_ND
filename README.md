@@ -31,10 +31,12 @@ $ pip list --format=freeze > requirements.txt
 After **activating your conda environment** with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
 
 ### Running end-to-end:
-The following script runs the data preprocessing and model evaluation on the dev set, end to end. This is also the script used in `D2.cmd`.
+The following script runs the data preprocessing and model evaluation on the dev set, end to end, for all 4 models: 1) baseline, 2) with context, 3) with RoBERTa, and 4) with context + RoBERTa. This is also the script used in `D3.cmd`.
 ```shell
-$ src/run_evaluate.sh
+$ src/D3_run_evaluate.sh
 ```
+
+**If you do not have the dev set ("data/sarc/dev-comments-balanced.json")**: You will need to edit `src/D3_run_evaluate.sh` slightly. Please comment in lines 21-23 to collect and partition the dev set.
 
 ### Running modularly:
 #### Data Pre-processing
