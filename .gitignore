@@ -171,4 +171,4 @@ Pipfile
 data
 outputs/*models
 outputs/*model
-*.logs
+# *.logs

@@ -1,4 +1,4 @@
-executable = src/run_evaluate.sh
+executable = src/D2_run_evaluate.sh
 getenv     = true
 error      = eval.error
 log        = eval.log

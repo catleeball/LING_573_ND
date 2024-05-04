@@ -1,13 +1,19 @@
 # LING_573_ND
 
 - Emails: emercha@uw.edu ; echm@uw.edu ; dabagyan@uw.edu ; jphore@uw.edu ; catball@uw.edu
-- Notes doc: https://docs.google.com/document/d/1dRRhQ-tDifD92wgQnitI-MEr2HRGA1ejRvxnlqBdwmw/edit#heading=h.46l7ewibx4a2
-- Drive: https://drive.google.com/drive/folders/1weS7nUDJJ_VrsxE2PJilDyicQqrfe65t
-- Latex Report: https://www.overleaf.com/8838911828dkmzdmdsrjhh#6ca906
+- [Notes document](https://docs.google.com/document/d/1dRRhQ-tDifD92wgQnitI-MEr2HRGA1ejRvxnlqBdwmw/edit#heading=h.46l7ewibx4a2)
+- [Google Drive](https://drive.google.com/drive/folders/1weS7nUDJJ_VrsxE2PJilDyicQqrfe65t)
+- [Latex Report](https://www.overleaf.com/8838911828dkmzdmdsrjhh#6ca906)
+
+### Models
+- [dabagyan/bert-sarcasm-model](https://huggingface.co/dabagyan/bert-sarcasm-model)
+- [dabagyan/bert-context-sarcasm-model](https://huggingface.co/dabagyan/bert-context-sarcasm-model)
+- [dabagyan/roberta-sarcasm-model](https://huggingface.co/dabagyan/roberta-sarcasm-model)
+- [dabagyan/roberta-context-sarcasm-model](https://huggingface.co/dabagyan/roberta-context-sarcasm-model)
 
 ## Getting started
 #### Installation
-```
+```shell
 $ conda create -n 573_ND python=3.10 pip
 $ conda activate 573_ND
 $ pip install -r requirements.txt
@@ -16,7 +22,7 @@ $ pip install -r requirements.txt
 #### Developer's notes
 * The above installation ensures that you can do `pip install`, using the pip that comes natively within the conda environment. You can check by running `which pip`. 
 * If you add more packages to the project, make sure to update the `requirements.txt`:
-```
+```shell
 $ pip list --format=freeze > requirements.txt
 ```
 * When running jupyter notebooks, make sure to set the kernel to the same python as the conda environment.
@@ -26,36 +32,36 @@ After **activating your conda environment** with the proper requirements and sys
 
 ### Running end-to-end:
 The following script runs the data preprocessing and model evaluation on the dev set, end to end. This is also the script used in `D2.cmd`.
-```
-src/run_evaluate.sh
+```shell
+$ src/run_evaluate.sh
 ```
 
 ### Running modularly:
 #### Data Pre-processing
-```
-src/dev_partition/make_dev_set.sh
+```shell
+$ src/dev_partition/make_dev_set.sh
 ```
 This script retrieves the relevant pieces of the SARC dataset, partitions the original training set into our training and dev sets, and converts the original .csv file into a JSON with the text and label data needed to run the model. *Comment in the last line of this file to also create the training JSON.*
 
 #### Training 
+```shell
+$ python -m src.model.train_model [--context] [--roberta] [--push]
 ```
-$ python -m src.model.train_model
-```
-This training process will output training checkpoint directories to the outputs/models/ directory of the repo. Once training is finished, upload all files from the last checkpoint to Hugging Face on the Model Hub and ensure that your HF model repo is public. 
+This training process will output training checkpoint directories to the `outputs/models/` directory of the repo. If `--push` is enabled, then the script automatically pushes the best model checkpoint to HuggingFace Hub. Make sure your `$HF_TOKEN` environment variable is set with your personal access token.
 
-In case the model has to be pushed separately, the following command can be used
-```bash
-python -m src.model.push_to_hub -p <insert/path/to/model> -n <insert-model-name>
+In case the model has to be pushed separately from training, the following command can be used:
+```shell
+$ python -m src.model.push_to_hub -p <insert/path/to/model> -n <insert-model-name>
 ```
 
 For running training using docker-compose, 
-```bash
-docker-compose up -d train-context-model # or train-base-model
+```shell
+$ docker-compose up -d train-context-model  # or other service name
 ```
 
 #### Evaluation
-```
-$ python -m src.model.evaluate
+```shell
+$ python -m src.model.evaluation
 ```
 The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
 
