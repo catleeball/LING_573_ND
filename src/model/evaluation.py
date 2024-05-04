@@ -19,7 +19,7 @@ model = BertForSequenceClassification.from_pretrained(model_name)
 # Define the path to your dev dataset
 # project_root=""
 # data_dir = f"{project_root}data/sarc/"
-# test_filename = f"{data_dir}/dev-comments-balanced.json" # TODO: fill in filename
+# test_filename = f"{data_dir}/dev-comments-balanced.json" 
 # model_output_file = f"{project_root}outputs/D2/d2.out"
 # metrics_file = f"{project_root}results/D2_scores.out"
 
