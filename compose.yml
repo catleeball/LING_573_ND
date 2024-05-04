@@ -1,5 +1,7 @@
 services:
   train-roberta-model:
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,6 +15,23 @@ services:
           devices:
             - driver: nvidia
               device_ids: ["0"]
+              capabilities: [gpu]
+  train-roberta-context-model:
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: "python -u -m src.model.train_model --roberta --context --push"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
               capabilities: [gpu]
   train-context-model:
     build:
