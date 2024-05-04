@@ -14,7 +14,7 @@ parser.add_argument('--roberta', action='store_true', help='Whether to use RoBER
 parser.add_argument('--push', action='store_true', help='Push final model to HuggingFace Hub.')
 args = parser.parse_args()
 
-model_id = f'{"context-" if args.context else ""}{"roberta-" if args.roberta else "base-"}model'
+model_id = f'{"roberta-" if args.roberta else "bert-"}{"context-" if args.context else ""}sarcasm-model'
 
 project_root = Path(__file__).cwd()
 data_dir = project_root / "data" / "sarc"
@@ -33,11 +33,11 @@ print(f"Training model using device: {device}")
 print(f"Training model id: {model_id}")
 print(f"Using pretrained: {pretrained_checkpoint}")
 
+
+tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
 if args.roberta:
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
     model = RobertaForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)
 else: 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
     model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)
 
 # LOAD DATA
@@ -53,7 +53,7 @@ eval_dataset = preprocess_data(eval_data_raw, tokenizer, context=args.context)
 
 # TRAIN MODEL
 training_args = TrainingArguments(
-    output_dir=model_dir,           # can do custom names
+    output_dir=model_dir,          
     evaluation_strategy = "epoch",
     save_strategy = "epoch",
     learning_rate=2e-5,             # defaults to Adam optimizer

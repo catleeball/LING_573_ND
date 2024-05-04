@@ -170,5 +170,4 @@ cython_debug/
 Pipfile
 data
 outputs/*models
-outputs/*model
-*.logs
+# *.logs
