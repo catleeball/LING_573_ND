@@ -61,9 +61,15 @@ $ docker-compose up -d train-context-model  # or other service name
 
 #### Evaluation
 ```shell
-$ python -m src.model.evaluation
+$ python -m src.model.evaluation <hf-model-name> <test-file> <model-output-file> <results-file>
 ```
-The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
+The src/model/evaluate.py script in this repo evaluates our trained model and produces the files in `outputs/` and `results/`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
 
-Note that `outputs/D2/d2.out` contains a printed tensor of the probabilities for each class label, so the highest probability represents the model prediction. The first column represents 0 or Not Sarcastic and the second column represents 1 or Sarcastic. If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
+There are additional flags available for use in src/model/evaluate.py:
+- `--context` includes context comments when pre-processing the given `<test-file>`.
+- `--append_metrics` opens the `<results-file>` in append mode, as opposed to overwriting the file contents.
+- `--roberta` uses the pretrained RoBERTa tokenizer, as opposed to the BERT tokenizer.
 
+These flags should match the loaded model; for example, if your `<hf-model-name>` is a fine-tuned RoBERTa model, you should use the `--roberta` flag. Examples of these flags are in `src/D3_run_evaluate.sh`.
+
+If running for your own model, note that the `<hf-model-name>` argument must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
