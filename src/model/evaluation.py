@@ -1,19 +1,34 @@
 import json
-import sys
+import argparse
 import torch
 from transformers import AutoTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 from .utils import *
 
 
+parser = argparse.ArgumentParser(description='Evaluate a sarcasm detection model.')
+# positional arguments
+parser.add_argument('model_name', help='The name of the model on Huggingface, including the username/...')
+parser.add_argument('test_filename', help='The name of the test dataset to evaluate the model on.')
+parser.add_argument('model_output_file', help='The name of the file to print model predictions to.')
+parser.add_argument('metrics_file', help='The name of the file to print model metrics (like f1) to.')
+# boolean flags
+parser.add_argument('--context', action='store_true', help='Include context comments when pre-processing evaluation data.')
+parser.add_argument('--append_metrics', action='store_true', help='Append model metrics to metrics file instead of overwriting.')
+parser.add_argument('--roberta', action='store_true', help='Whether the model uses ROBERTA or not (determines tokenizer).')
+args = parser.parse_args()
+
 # Define the model name on Hugging Face
 # model_name = "Jade13/LING_573_ND_Trainer_D2_NoDev"
-model_name = sys.argv[1]
-test_filename = sys.argv[2]
-model_output_file = sys.argv[3]
-metrics_file = sys.argv[4]
+model_name = args.model_name
+test_filename = args.test_filename
+model_output_file = args.model_output_file
+metrics_file = args.metrics_file
+# print(f"model_name: {model_name}, test_filename: {test_filename}, model_output_file: {model_output_file}, metrics_file: {metrics_file}")
+
+pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
 
 # Load the model and tokenizer from Hugging Face
-tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
 model = BertForSequenceClassification.from_pretrained(model_name)
 
 # Define the path to your dev dataset
@@ -27,7 +42,7 @@ model = BertForSequenceClassification.from_pretrained(model_name)
 with open(test_filename) as f:
     test_data_raw = json.load(f)
 
-encoded_test_dataset = preprocess_data(test_data_raw, tokenizer)
+encoded_test_dataset = preprocess_data(test_data_raw, tokenizer, context=args.context)
 
 # Define the training arguments
 training_args = TrainingArguments(
@@ -65,7 +80,14 @@ with open(model_output_file, "w") as outputs:
             pred = 0
         outputs.write(f"pred: {pred}, gold: {true_label}, probs: {prob_0}, {prob_1}\n")
 
-with open(metrics_file, "w") as results:
+if args.append_metrics:
+    write_mode = "a"
+else:
+    write_mode = "w"
+
+with open(metrics_file, write_mode) as results:
     metrics = predictions.metrics
+    results.write(f"Model: {model_name}\n")
     for m in metrics:
         results.write(f"{m}: {metrics[m]}\n")
+    results.write("\n")
