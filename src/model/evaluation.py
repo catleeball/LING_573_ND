@@ -1,7 +1,7 @@
 import json
 import argparse
 import torch
-from transformers import AutoTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments
 from .utils import *
 
 
@@ -15,31 +15,14 @@ parser.add_argument('metrics_file', help='The name of the file to print model me
 parser.add_argument('--context', action='store_true', help='Include context comments when pre-processing evaluation data.')
 parser.add_argument('--append_metrics', action='store_true', help='Append model metrics to metrics file instead of overwriting.')
 parser.add_argument('--roberta', action='store_true', help='Whether the model uses ROBERTA or not (determines tokenizer).')
+
 args = parser.parse_args()
 
-# Define the model name on Hugging Face
-# model_name = "Jade13/LING_573_ND_Trainer_D2_NoDev"
-model_name = args.model_name
-test_filename = args.test_filename
-model_output_file = args.model_output_file
-metrics_file = args.metrics_file
-# print(f"model_name: {model_name}, test_filename: {test_filename}, model_output_file: {model_output_file}, metrics_file: {metrics_file}")
-
-pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
-
 # Load the model and tokenizer from Hugging Face
-tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
-model = BertForSequenceClassification.from_pretrained(model_name)
-
-# Define the path to your dev dataset
-# project_root=""
-# data_dir = f"{project_root}data/sarc/"
-# test_filename = f"{data_dir}/dev-comments-balanced.json" 
-# model_output_file = f"{project_root}outputs/D2/d2.out"
-# metrics_file = f"{project_root}results/D2_scores.out"
+model, tokenizer = load_model(args.model_name, roberta=args.roberta)
 
 # Load the dev dataset
-with open(test_filename) as f:
+with open(args.test_filename) as f:
     test_data_raw = json.load(f)
 
 encoded_test_dataset = preprocess_data(test_data_raw, tokenizer, context=args.context)
@@ -47,7 +30,7 @@ encoded_test_dataset = preprocess_data(test_data_raw, tokenizer, context=args.co
 # Define the training arguments
 training_args = TrainingArguments(
     output_dir="./results",          # output directory
-    per_device_eval_batch_size=64,  # batch size for evaluation
+    per_device_eval_batch_size=64,   # batch size for evaluation
 )
 
 # Initialize the Trainer
@@ -55,6 +38,7 @@ trainer = Trainer(
     model=model,                         # the instantiated hf Transformers model to be trained
     args=training_args,                  # training arguments, defined above
     compute_metrics=compute_metrics,     # the callback that computes metrics of interest
+    tokenizer=tokenizer,                 # used for autopadding
 )
 
 # Make predictions on the testing dataset
@@ -69,7 +53,7 @@ probabilities = torch.softmax(logits_tensor, dim=1)
 print(probabilities)
 print(predictions.metrics)
 
-with open(model_output_file, "w") as outputs:
+with open(args.model_output_file, "w") as outputs:
     for p in range(0, len(probabilities)):
         true_label = encoded_test_dataset[p]["label"]
         prob_0 = float(probabilities[p][0])
@@ -85,9 +69,9 @@ if args.append_metrics:
 else:
     write_mode = "w"
 
-with open(metrics_file, write_mode) as results:
+with open(args.metrics_file, write_mode) as results:
     metrics = predictions.metrics
-    results.write(f"Model: {model_name}\n")
+    results.write(f"Model: {args.model_name}\n")
     for m in metrics:
         results.write(f"{m}: {metrics[m]}\n")
     results.write("\n")

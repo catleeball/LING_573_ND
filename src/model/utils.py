@@ -1,6 +1,21 @@
 import numpy as np
 import evaluate
 from datasets import Dataset
+from transformers import AutoTokenizer, BertForSequenceClassification
+from transformers import RobertaForSequenceClassification
+
+
+def load_model(model_checkpoint, roberta=False):
+    id2label = {0: "not_sarcastic", 1: "sarcastic"} 
+
+    tokenizer_name = "roberta-base" if roberta else "google-bert/bert-base-uncased"
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+
+    if roberta:
+        model = RobertaForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label)
+    else: 
+        model = BertForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label)
+    return model, tokenizer
 
 
 def preprocess_data(raw_data, tokenizer, context=False):
