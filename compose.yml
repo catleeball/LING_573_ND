@@ -6,7 +6,7 @@ services:
     volumes:
       - ./:/workspace
     working_dir: /workspace
-    command: "python -u -m src.model.train_model --roberta"
+    command: "python -u -m src.model.train_model --roberta --push"
     deploy:
       resources:
         reservations:

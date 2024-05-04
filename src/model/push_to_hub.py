@@ -1,7 +1,5 @@
 import argparse
-
 from transformers import BertForSequenceClassification
-
 from pathlib import Path
 
 def dir_path(path):
