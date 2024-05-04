@@ -2,7 +2,7 @@
 
 PROJECT_ROOT="$(pwd)"   # change if necessary, this works from D3.cmd
 
-# NOTE: if you do not have dev-comment-balanced.json, comment in partition lines (21-23) instead
+# NOTE: if you do not have dev-comment-balanced.json, comment in partition lines (21-23)
 EVAL_DATA_FILE="$PROJECT_ROOT/data/sarc/dev-comments-balanced.json"
 
 # models to evaluate:
