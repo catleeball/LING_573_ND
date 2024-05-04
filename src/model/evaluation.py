@@ -50,7 +50,7 @@ logits_tensor = torch.tensor(predictions.predictions)
 probabilities = torch.softmax(logits_tensor, dim=1)
 
 # Print the probabilities
-print(probabilities)
+# print(probabilities)
 print(predictions.metrics)
 
 with open(args.model_output_file, "w") as outputs:
