@@ -2,7 +2,7 @@ import json
 import argparse
 import torch
 from transformers import AutoTokenizer, BertForSequenceClassification
-from transformers import RobertaTokenizerFast, RobertaForSequenceClassification
+from transformers import RobertaForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from pathlib import Path
 from .utils import *
@@ -22,7 +22,7 @@ eval_filename = data_dir / "dev-comments-balanced.json"
 
 # LOAD MODEL
 print("Loading model...")
-pretrained_checkpoint = "google-bert/bert-base-uncased" if args.roberta else "google-bert/bert-base-uncased" 
+pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
 id2label = {0: "not_sarcastic", 1: "sarcastic"} 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
