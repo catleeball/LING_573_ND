@@ -136,6 +136,8 @@ def clean_and_classify():
     executor = LocalPipelineExecutor(
         pipeline=pipeline,
         logging_dir=LOG_DIR,
+        tasks=24,
+        workers=-1,
     )
     executor.run()
 
