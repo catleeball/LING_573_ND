@@ -14,7 +14,7 @@ CLEANED_DIR = '/Media/Data/reddit/Cleaned_Data'
 TONE_INDICATOR_DIR = '/Media/Data/reddit/Tone_Indicator_Data'
 LOG_DIR = '/Media/Data/reddit/.logs'
 # URL_REGEX = re.compile(r"^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
-URL_REGEX = re.compile(r'(http\S+)')
+URL_REGEX = re.compile(r'http\S+')
 # TONE_INDICATOR_REGEX = re.compile(r'([^\S]/s[\S$]|[^\S]/sarcasm[\S$]|[^\S]/sarcastic[\S$]|[^\S]/serious[\S$]|[^\S]/srs[\S$])')
 SARCASM_INDICATOR_REGEX = re.compile(r'([^\S][/\\]s[\S$.,?!]|[^\S][/\\]sarcasm[\S$.,?!]|[^\S][/\\]sarcastic[\S$.,?!]|)')
 SERIOUS_INDICATOR_REGEX = re.compile(r'([^\S][/\\]serious[\S$.,?!]|[^\S][/\\]srs[\S$.,?!])')
