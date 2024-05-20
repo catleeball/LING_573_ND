@@ -7,7 +7,6 @@ from datatrove.pipeline.base import PipelineStep
 from datatrove.pipeline.filters.base_filter import BaseFilter
 from datatrove.pipeline.readers import JsonlReader
 from datatrove.pipeline.writers import JsonlWriter
-from urlextract import URLExtract
 
 
 INPUT_DIR = '/Media/Data/reddit/Selected_Subreddits_Data_Small_Chunked_Files_Compressed'
@@ -15,7 +14,7 @@ CLEANED_DIR = '/Media/Data/reddit/Cleaned_Data'
 TONE_INDICATOR_DIR = '/Media/Data/reddit/Tone_Indicator_Data'
 LOG_DIR = '/Media/Data/reddit/.logs'
 # URL_REGEX = re.compile(r"^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
-# URL_REGEX = re.compile(r'(http\S+)')
+URL_REGEX = re.compile(r'(http\S+)')
 # TONE_INDICATOR_REGEX = re.compile(r'([^\S]/s[\S$]|[^\S]/sarcasm[\S$]|[^\S]/sarcastic[\S$]|[^\S]/serious[\S$]|[^\S]/srs[\S$])')
 SARCASM_INDICATOR_REGEX = re.compile(r'([^\S][/\\]s[\S$.,?!]|[^\S][/\\]sarcasm[\S$.,?!]|[^\S][/\\]sarcastic[\S$.,?!]|)')
 SERIOUS_INDICATOR_REGEX = re.compile(r'([^\S][/\\]serious[\S$.,?!]|[^\S][/\\]srs[\S$.,?!])')
@@ -31,7 +30,7 @@ class RemoveNonASCII(PipelineStep):
     def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
         for doc in data:
             with self.track_time():
-                doc.text = str(filter(lambda c: c in string.printable, doc.text))
+                doc.text = ''.join([c for c in doc.text if c in string.printable])
             yield doc
 
 
@@ -42,18 +41,9 @@ class RemoveURLs(PipelineStep):
     def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
         for doc in data:
             with self.track_time():
-                url_extractor = URLExtract()
-                # Get unique URLs in document text
-                urls = set()
-                for url in url_extractor.gen_urls(str(doc.text)):
-                    urls.add(url)
-                if urls:
+                if 'http' in doc.text:
                     self.stat_update("contains_url", value=doc.id)
-                for url in urls:
-                    doc.text.replace(url, '')
-                # if 'http' in doc.text:
-                #     self.stat_update("contains_url", value=doc.id)
-                #     doc.text = re.sub(URL_REGEX, '', doc.text)
+                    doc.text = re.sub(URL_REGEX, '', doc.text)
             yield doc
 
 
