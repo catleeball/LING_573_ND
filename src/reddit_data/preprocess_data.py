@@ -16,8 +16,8 @@ LOG_DIR = '/Media/Data/reddit/.logs'
 # URL_REGEX = re.compile(r"^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
 URL_REGEX = re.compile(r'http\S+')
 # TONE_INDICATOR_REGEX = re.compile(r'([^\S]/s[\S$]|[^\S]/sarcasm[\S$]|[^\S]/sarcastic[\S$]|[^\S]/serious[\S$]|[^\S]/srs[\S$])')
-SARCASM_INDICATOR_REGEX = re.compile(r'([^\S][/\\]s[\S$.,?!]|[^\S][/\\]sarcasm[\S$.,?!]|[^\S][/\\]sarcastic[\S$.,?!]|)')
-SERIOUS_INDICATOR_REGEX = re.compile(r'([^\S][/\\]serious[\S$.,?!]|[^\S][/\\]srs[\S$.,?!])')
+SARCASM_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]s[\S$.,?!]?|[^\s]?[/\\]sarcasm[\S$.,?!]?|[^\s]?[/\\]sarcastic[\S$.,?!]?)')
+SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\S$.,?!]?|[^\s]?[/\\]srs[\S$.,?!]?)')
 
 BAD_ID = 'BAD'
 BAD_JSON = {'text': '', 'id': BAD_ID, 'metadata': {}}
