@@ -42,7 +42,7 @@ class RemoveURLs(PipelineStep):
         for doc in data:
             with self.track_time():
                 if 'http' in doc.text:
-                    self.stat_update("contains_url", value=doc.id)
+                    self.stat_update("contains_url")
                     doc.text = re.sub(URL_REGEX, '', doc.text)
             yield doc
 
@@ -54,8 +54,10 @@ class ToneIndicatorFilter(BaseFilter):
         with self.track_time():
             sarcastic = bool(re.search(SARCASM_INDICATOR_REGEX, doc.text))
             serious = bool(re.search(SERIOUS_INDICATOR_REGEX, doc.text))
-            self.stat_update("sarcastic", value=sarcastic)
-            self.stat_update("serious", value=serious)
+            self.stat_update("sarcastic")
+            self.stat_update("serious")
+            doc.metadata['sarcastic'] = int(sarcastic)
+            doc.metadata['serious'] = int(serious)
         yield sarcastic or serious
 
 
