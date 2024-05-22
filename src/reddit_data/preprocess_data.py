@@ -14,7 +14,9 @@ CLEANED_DIR = '/Media/Data/reddit/Cleaned_Data'
 TONE_INDICATOR_DIR = '/Media/Data/reddit/Tone_Indicator_Data'
 LOG_DIR = '/Media/Data/reddit/.logs'
 # URL_REGEX = re.compile(r"^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
-URL_REGEX = re.compile(r'http\S+')
+URL_REGEX = re.compile(r'''
+['"(]*http[\S)'"$]+
+''')
 # TONE_INDICATOR_REGEX = re.compile(r'([^\S]/s[\S$]|[^\S]/sarcasm[\S$]|[^\S]/sarcastic[\S$]|[^\S]/serious[\S$]|[^\S]/srs[\S$])')
 SARCASM_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]s[\S$.,?!]?|[^\s]?[/\\]sarcasm[\S$.,?!]?|[^\s]?[/\\]sarcastic[\S$.,?!]?)')
 SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\S$.,?!]?|[^\s]?[/\\]srs[\S$.,?!]?)')
@@ -22,6 +24,9 @@ SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\S$.,?!]?|[^\s]?[/\\]
 BAD_ID = 'BAD'
 BAD_JSON = {'text': '', 'id': BAD_ID, 'metadata': {}}
 
+ALLOWED_CHARS = string.ascii_letters + string.digits + string.whitespace + r"""
+" ',.?!/
+"""
 
 class RemoveNonASCII(PipelineStep):
     name = 'Remove non-ASCII'
@@ -30,7 +35,10 @@ class RemoveNonASCII(PipelineStep):
     def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
         for doc in data:
             with self.track_time():
-                doc.text = ''.join([c for c in doc.text if c in string.printable])
+                # string.printable left characters in that later broke json serialization :(
+                doc.text = ''.join([c for c in doc.text if c in ALLOWED_CHARS])
+                for val in doc.metadata.values():
+                    doc.text = ''.join([c for c in doc.text if c in ALLOWED_CHARS])
             yield doc
 
 
@@ -47,18 +55,20 @@ class RemoveURLs(PipelineStep):
             yield doc
 
 
-class ToneIndicatorFilter(BaseFilter):
+class ToneIndicatorLabeler(PipelineStep):
     name = 'Tone Indicator'
+    type = 'Transformer'
 
-    def filter(self, doc: Document) -> bool:
-        with self.track_time():
-            sarcastic = bool(re.search(SARCASM_INDICATOR_REGEX, doc.text))
-            serious = bool(re.search(SERIOUS_INDICATOR_REGEX, doc.text))
-            self.stat_update("sarcastic")
-            self.stat_update("serious")
-            doc.metadata['sarcastic'] = int(sarcastic)
-            doc.metadata['serious'] = int(serious)
-        yield sarcastic or serious
+    def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
+        for doc in data:
+            with self.track_time():
+                sarcastic = bool(re.search(SARCASM_INDICATOR_REGEX, doc.text))
+                serious = bool(re.search(SERIOUS_INDICATOR_REGEX, doc.text))
+                self.stat_update("sarcastic")
+                self.stat_update("serious")
+                doc.metadata['sarcastic'] = int(sarcastic)
+                doc.metadata['serious'] = int(serious)
+            yield doc
 
 
 class EmptyPostFilter(BaseFilter):
@@ -93,7 +103,7 @@ def jsonl_text_extraction_adapter(data: dict, path: str, id_in_file: int | str) 
             'subreddit': data.get('subreddit', ''),
             'subreddit_id': data.get('subreddit_id', ''),
             'permalink': data.get('permalink', ''),
-            'created_utc': data.get('created_utc', ''),
+            'created_utc': str(data.get('created_utc', '')),
         }
     }
 
@@ -116,8 +126,8 @@ def clean_and_classify():
             output_filename='data.gz',
             compression='gzip'
         ),
-        # Keep only documents containing tone indicators
-        ToneIndicatorFilter(),
+        # Tag metadata section of docs with whether they do or don't contain tone.
+        ToneIndicatorLabeler(),
         # Write data containing tone indicators
         JsonlWriter(
             output_folder=TONE_INDICATOR_DIR,
