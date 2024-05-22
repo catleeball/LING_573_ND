@@ -56,7 +56,7 @@ class RemoveURLs(PipelineStep):
 
 
 class ToneIndicatorLabeler(PipelineStep):
-    name = 'Tone Indicator'
+    name = 'Tone Indicator Labeler'
     type = 'Transformer'
 
     def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
@@ -64,8 +64,8 @@ class ToneIndicatorLabeler(PipelineStep):
             with self.track_time():
                 sarcastic = bool(re.search(SARCASM_INDICATOR_REGEX, doc.text))
                 serious = bool(re.search(SERIOUS_INDICATOR_REGEX, doc.text))
-                self.stat_update("sarcastic")
-                self.stat_update("serious")
+                self.stat_update("sarcastic", int(sarcastic))
+                self.stat_update("serious", int(serious))
                 doc.metadata['sarcastic'] = int(sarcastic)
                 doc.metadata['serious'] = int(serious)
             yield doc
@@ -120,19 +120,13 @@ def clean_and_classify():
         # Clean data in documents in-place
         RemoveNonASCII(),
         RemoveURLs(),
-        # Write all cleaned data before proceeding to tone classification.
-        JsonlWriter(
-            output_folder=CLEANED_DIR,
-            output_filename='data.gz',
-            compression='gzip'
-        ),
         # Tag metadata section of docs with whether they do or don't contain tone.
         ToneIndicatorLabeler(),
         # Write data containing tone indicators
         JsonlWriter(
             output_folder=TONE_INDICATOR_DIR,
-            output_filename='data.gz',
-            compression='gzip'
+            output_filename='data2.jsonl',
+            compression=None,
         )
     ]
     executor = LocalPipelineExecutor(
