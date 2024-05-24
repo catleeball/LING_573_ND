@@ -16,27 +16,30 @@ with open(input_file, "r") as data:
         line = line.strip()
 
         if not line:
-          continue
+            continue
         if not line.startswith('{'):
-          continue
+            continue
         if not line.endswith('}'):
-          continue
+            continue
 
         try:
-          json_line = json.loads(line)
+            json_line = json.loads(line)
         except Exception as e:
-          sys.stderr.write(f'[WARN] Skipping line {line_num} due to json error: {e}\n')
-          continue
+            sys.stderr.write(f'[WARN] Skipping line {line_num} due to json error: {e}\n')
+            continue
 
         id = None
         sarc = None
         ser = None
+
         if 'id' in json_line:
-          id = json_line['id']
-        if 'sarcastic' in json_line:
-          sarc = json_line['sarcastic']
-        if 'serious' in json_line:
-          ser = json_line['serious']
+            id = json_line['id']
+        if not 'metadata' in json_line:
+            continue
+        if 'sarcastic' in json_line['metadata']:
+            sarc = json_line['metadata']['sarcastic']
+        if 'serious' in json_line['metadata']:
+            ser = json_line['metadata']['serious']
 
         if sarc == "1" and ser == "0":
             sarc_ids.append(id)
