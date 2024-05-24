@@ -1,4 +1,4 @@
-import jsonlines
+import json
 import random
 import sys
 
@@ -12,21 +12,36 @@ sarc_ids = []
 srs_ids = []
 
 with open(input_file, "r") as data:
-    reader = jsonlines.Reader(data)
-    for line_num, line in enumerate(reader, start=1):
-        try:
-            id = line["id"]
-            sarc = line["sarcastic"]
-            ser = line["serious"]
+    for line_num, line in enumerate(data):
+        line = line.strip()
 
-            if sarc == "1" and ser == "0":
-                sarc_ids.append(id)
-            elif sarc == "1" and ser == "1":
-                srs_ids.append(id)
-        except (jsonlines.jsonlines.InvalidLineError, ValueError, KeyError) as e:
-            # Skip the line if it is not properly formatted or if keys are missing
-            print(f"Skipping line {line_num} due to error: {e}")
-            continue
+        if not line:
+          continue
+        if not line.startswith('{'):
+          continue
+        if not line.endswith('}'):
+          continue
+
+        try:
+          json_line = json.loads(line)
+        except Exception as e:
+          sys.stderr.write(f'[WARN] Skipping line {line_num} due to json error: {e}\n')
+          continue
+
+        id = None
+        sarc = None
+        ser = None
+        if 'id' in json_line:
+          id = json_line['id']
+        if 'sarcastic' in json_line:
+          sarc = json_line['sarcastic']
+        if 'serious' in json_line:
+          ser = json_line['serious']
+
+        if sarc == "1" and ser == "0":
+            sarc_ids.append(id)
+        if ser == "1":
+            srs_ids.append(id)
 
 random.seed(13)
 
