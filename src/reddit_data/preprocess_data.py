@@ -8,11 +8,10 @@ from datatrove.pipeline.filters.base_filter import BaseFilter
 from datatrove.pipeline.readers import JsonlReader
 from datatrove.pipeline.writers import JsonlWriter
 
-
 INPUT_DIR = '/Media/Data/reddit/Selected_Subreddits_Data_Small_Chunked_Files_Compressed'
 CLEANED_DIR = '/Media/Data/reddit/Cleaned_Data'
 TONE_INDICATOR_DIR = '/Media/Data/reddit/Tone_Indicator_Data'
-LOG_DIR = '/Media/Data/reddit/.logs'
+LOG_DIR = '/Media/Data/reddit/logs2'
 # URL_REGEX = re.compile(r"^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$")
 URL_REGEX = re.compile(r'''
 ['"(]*http[\S)'"$]+
@@ -24,35 +23,27 @@ SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\S$.,?!]?|[^\s]?[/\\]
 BAD_ID = 'BAD'
 BAD_JSON = {'text': '', 'id': BAD_ID, 'metadata': {}}
 
-ALLOWED_CHARS = string.ascii_letters + string.digits + string.whitespace + r"""
-" ',.?!/
+ALLOWED_CHARS = string.ascii_letters + string.digits + r"""
+.?! /
 """
 
-class RemoveNonASCII(PipelineStep):
-    name = 'Remove non-ASCII'
-    type = 'Transformer'
 
-    def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
-        for doc in data:
-            with self.track_time():
-                # string.printable left characters in that later broke json serialization :(
-                doc.text = ''.join([c for c in doc.text if c in ALLOWED_CHARS])
-                for val in doc.metadata.values():
-                    doc.text = ''.join([c for c in doc.text if c in ALLOWED_CHARS])
-            yield doc
+def clean_str(s: str) -> str:
+    if not s or s == '':
+        return ''
+    buffer = []
+    for c in s:
+        if c == '\\':
+            buffer.append('/')
+            continue
+        if c in string.whitespace:
+            buffer.append(' ')
+            continue
+        if c in ALLOWED_CHARS:
+            buffer.append(c)
+            continue
 
-
-class RemoveURLs(PipelineStep):
-    name = 'Remove URLs'
-    type = 'Transformer'
-
-    def run(self, data: DocumentsPipeline, rank: int = 0, word_size: int = 1) -> DocumentsPipeline:
-        for doc in data:
-            with self.track_time():
-                if 'http' in doc.text:
-                    self.stat_update("contains_url")
-                    doc.text = re.sub(URL_REGEX, '', doc.text)
-            yield doc
+    return ''.join(buffer)
 
 
 class ToneIndicatorLabeler(PipelineStep):
@@ -77,7 +68,6 @@ class EmptyPostFilter(BaseFilter):
     def filter(self, doc: Document) -> bool | Tuple[bool, str]:
         if doc.id == BAD_ID:
             yield False
-        # We only want text long enough to fit a tone indicator
         match doc.text.strip():
             case None | '' | '[deleted]' | '[removed]':
                 yield False
@@ -85,55 +75,91 @@ class EmptyPostFilter(BaseFilter):
                 yield True
 
 
+# class SubredditFilter(BaseFilter):
+#     name = 'Filter to only ND subreddits'
+#     subreddits = ('adhd', 'adhdwomen', 'aspergirls', 'autismtranslated', 'autismmemes', 'autisticpride', 'autism',
+#                   'autisticadults', 'autisminwomen', 'neurodivergent', 'neurodivergentlbgtq',)
+#     def filter(self, doc: Document) -> bool | Tuple[bool, str]:
+#         if doc.metadata['subreddit'].lower() in self.subreddits:
+#             yield True
+#         else:
+#             yield False
+
+
 def jsonl_text_extraction_adapter(data: dict, path: str, id_in_file: int | str) -> dict:
-    # Comment objects have the `body` attribute
+    # Comment objects have the `body` attribute; Submission objects have 'selftext'
     if 'body' in data:
-        text_key = data.pop('body')
+        text_key = clean_str(data.pop('body'))
     elif 'selftext' in data:
-        text_key = data.pop('selftext')
+        text_key = clean_str(data.pop('selftext'))
     else:
         return BAD_JSON
+
+    # ensure all data has only allowed chars
+    author = clean_str(data.get('author', ''))
+    title = clean_str(data.get('title', ''))
+    subreddit = clean_str(data.get('subreddit', ''))
+    subreddit_id = clean_str(data.get('subreddit_id', ''))
+    created_utc = clean_str(str(data.get('created_utc', '')))
+
+    # Remove URLs
+    if 'http' in text_key:
+        text_key = re.sub(URL_REGEX, '', text_key)
+
+    if not text_key:
+        return BAD_JSON
+
     return {
         'text': text_key,
-        'id': data.pop('id', f'{path}/{id_in_file}'),
-        # "metadata": data.pop("metadata", {}) | data,  # remaining data goes into metadata
+        'id': clean_str(data.pop('id', f'{path}/{id_in_file}')),
         'metadata': {
-            'author': data.get('author', ''),
-            'title': data.get('title', ''),
-            'subreddit': data.get('subreddit', ''),
-            'subreddit_id': data.get('subreddit_id', ''),
-            'permalink': data.get('permalink', ''),
-            'created_utc': str(data.get('created_utc', '')),
-        }
+            'author': author,
+            'title': title,
+            'subreddit': subreddit,
+            'subreddit_id': subreddit_id,
+            'created_utc': created_utc,
+        },
+    }
+
+
+def jsonl_writer_adapter(doc: Document) -> dict:
+    return {
+        'id': doc.id,
+        'text': doc.text,
+        'author': doc.metadata['author'],
+        'title': doc.metadata['title'],
+        'subreddit': doc.metadata['subreddit'],
+        'subreddit_id': doc.metadata['subreddit_id'],
+        'created_utc': doc.metadata['created_utc'],
+        'sarcastic': doc.metadata['sarcastic'],
+        'serious': doc.metadata['serious'],
     }
 
 
 def clean_and_classify():
     pipeline = [
         # Parse 'id' and 'selftext'/'body' attributes from each line Document objects
+        # Same as JsonlReader, but each line is run through clean_str() before being made into a Document
         JsonlReader(
             data_folder=INPUT_DIR,
             adapter=jsonl_text_extraction_adapter,
         ),
         # Remove empty / invalid posts
         EmptyPostFilter(),
-        # Clean data in documents in-place
-        RemoveNonASCII(),
-        RemoveURLs(),
         # Tag metadata section of docs with whether they do or don't contain tone.
         ToneIndicatorLabeler(),
-        # Write data containing tone indicators
+        # Write data containing tone indicators. Same as JsonlWriter, but
+        # we set ensure_ascii=True, use minimal separators, and we assert the serialized strings can be deserialized
         JsonlWriter(
             output_folder=TONE_INDICATOR_DIR,
-            output_filename='data2.jsonl',
+            output_filename='data.jsonl',
             compression=None,
+            adapter=jsonl_writer_adapter
         )
     ]
     executor = LocalPipelineExecutor(
         pipeline=pipeline,
         logging_dir=LOG_DIR,
-        tasks=24,
-        workers=-1,
     )
     executor.run()
 
