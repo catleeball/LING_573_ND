@@ -2,8 +2,6 @@ use std::collections::HashSet;
 use std::fs::{File, remove_file};
 use std::io;
 use std::io::{Lines, BufReader};
-// use std::io::BufReader;
-// use std::path::Path;
 use serde::Serialize;
 use serde_json::Value;
 use rayon::prelude::*;
@@ -11,7 +9,6 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::io::prelude::*;
 use anyhow::{anyhow, Result};
-// use zstd::stream::read::Decoder;
 use std::process::Command;
 
 // lol, lmao,
@@ -550,31 +547,11 @@ impl RedditPost {
     }
 }
 
-// #[inline]
-// fn read_lines<P>(filename: P) -> io::Result<io::Lines<BufReader<File>>>
-//     where P: AsRef<Path>, {
-//     let file = File::open(filename)?;
-//     Ok(BufReader::new(file).lines())
-// }
-
 #[inline]
 fn read_lines(filename: &str) -> Lines<BufReader<File>> {
     let file = File::open(filename).expect(&format!("Failed to open file {filename}"));
     BufReader::new(file).lines()
 }
-
-// #[inline]
-// fn read_lines<P>(filename: P) -> Result<String>
-//     where
-//         P: AsRef<Path>,
-// {
-//     let file = File::open(filename)?;
-//     let mut decoder = Decoder::new(file)?;
-//     decoder.window_log_max(31)?;
-//     let mut str_buffer = String::new();
-//     BufReader::new(decoder).read_to_string(&mut str_buffer)?;
-//     Ok(str_buffer)
-// }
 
 #[inline]
 fn decompress_file(filename: &str) -> String {
@@ -616,34 +593,10 @@ fn clean_file(filename: &str) -> Vec<String> {
 
 fn main() {
     for path in PATHS.iter() {
-        // let filehandle = match File::open(&path) {
-        //     Ok(fh) => fh,
-        //     Err(e) => {
-        //         println!("[WARN] Failed to open file: `{path}`. Error: {e}");
-        //         continue
-        //     },
-        // };
-        // let bufreader = BufReader::new(filehandle);
-        // let mut zstd_reader = match Decoder::with_buffer(bufreader) {
-        //     Ok(dec) => dec,
-        //     Err(e) => {
-        //         println!("[WARN] Failed to decompress: `{path}`. Error: {e}");
-        //         continue
-        //     }
-        // };
-        // match zstd_reader.window_log_max(31) {
-        //     Ok(dec) => dec,
-        //     Err(e) => {
-        //         println!("[WARN] Failed to set windlow_log_max for file: `{path}`. Error: {e}");
-        //         continue
-        //     }
-        // };
-
         let decompressed = decompress_file(&path);
         println!("Decompressed file: {decompressed}");
 
         let cleaned_json = clean_file(&decompressed).join("\n");
-
         println!("{} lines parsed from {}", &cleaned_json.len(), &path);
 
         let new_file_path = format!("{}{}", path, ".PROCESSED.jsonl");
