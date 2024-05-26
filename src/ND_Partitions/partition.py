@@ -10,96 +10,93 @@ input_file = sys.argv[1]
 
 sarc_ids = []
 srs_ids = []
+unmarked_ids = []
 
+# Read sarcastic authors
+sarc_authors = set()
+with open("sarc_authors.txt", "r") as f:
+    for line in f:
+        parts = line.strip().split('"')
+        if len(parts) > 3 and parts[2] == ": ":
+            sarc_authors.add(parts[3])
+
+print(sarc_authors)
+
+# Read input data
+data_dict = {}
 with open(input_file, "r") as data:
     for line_num, line in enumerate(data):
         line = line.strip()
-
-        if not line:
-            continue
-        if not line.startswith('{'):
-            continue
-        if not line.endswith('}'):
+        if not line or not line.startswith('{') or not line.endswith('}'):
             continue
 
         try:
             json_line = json.loads(line)
         except Exception as e:
-            sys.stderr.write(f'[WARN] Skipping line {line_num} due to json error: {e}\n')
+            print(f'[WARN] Skipping line {line_num} due to json error: {e}\n')
             continue
 
-        id = None
-        sarc = None
-        ser = None
+        id = json_line.get('id')
+        sarc = json_line.get('sarcastic')
+        ser = json_line.get('serious')
+        author = json_line.get('author')
+        text = json_line.get('text')
 
-        if 'id' in json_line:
-            id = json_line['id']
-        if not 'metadata' in json_line:
+        if text == "deleted" or text == "removed":
             continue
-        if 'sarcastic' in json_line['metadata']:
-            sarc = json_line['metadata']['sarcastic']
-        if 'serious' in json_line['metadata']:
-            ser = json_line['metadata']['serious']
 
-        if sarc == "1" and ser == "0":
+        data_dict[id] = {"text": text, "label": None}
+
+        if sarc == 1 and ser == 0:
             sarc_ids.append(id)
-        if ser == "1":
+            data_dict[id]["label"] = 1
+        elif ser == 1:
             srs_ids.append(id)
+            data_dict[id]["label"] = 0
+        elif sarc == 0 and ser == 0 and author in sarc_authors:
+            unmarked_ids.append(id)
+            data_dict[id]["label"] = 0
+
+print(f"Number of sarcastic instances: {len(sarc_ids)}")
+print(f"Number of serious instances: {len(srs_ids)}")
+print(f"Number of unmarked instances: {len(unmarked_ids)}")
 
 random.seed(13)
 
-# SARCASTIC
+# Match the number of unmarked instances to the number of sarcastic instances
+if len(unmarked_ids) > len(sarc_ids):
+    unmarked_ids = random.sample(unmarked_ids, len(sarc_ids))
+
+print(f"Number of unmarked instances after matching: {len(unmarked_ids)}")
+
+# Combine all ids
+all_ids = sarc_ids + srs_ids + unmarked_ids
+
+# Shuffle the combined list
+random.shuffle(all_ids)
 
 # Calculate the sizes for each partition
-sarc_instances = len(sarc_ids)
-train_size = int(0.8 * sarc_instances)
-dev_size = int(0.1 * sarc_instances)
-test_size = sarc_instances - train_size - dev_size
-
-# Shuffle the data instances
-random.shuffle(sarc_ids)
+total_instances = len(all_ids)
+train_size = int(0.8 * total_instances)
+dev_size = int(0.1 * total_instances)
+test_size = total_instances - train_size - dev_size
 
 # Split into partitions
-train_data = sarc_ids[:train_size]
-dev_data = sarc_ids[train_size:train_size + dev_size]
-test_data = sarc_ids[train_size + dev_size:]
+train_data = all_ids[:train_size]
+dev_data = all_ids[train_size:train_size + dev_size]
+test_data = all_ids[train_size + dev_size:]
 
-with open("s1_srs0_train.txt", "w") as train_out:
-    for id in train_data:
-        train_out.write(id + ": 1\n")
+# Function to write JSON data to a file
+def write_json_data(filename, data_ids):
+    output_data = {id: {"text": data_dict[id]["text"], "label": data_dict[id]["label"]} for id in data_ids}
+    with open(filename, "w") as out_file:
+        json.dump(output_data, out_file, indent=2)
 
-with open("s1_srs0_dev.txt", "w") as dev_out:
-    for id in dev_data:
-        dev_out.write(id + ": 1\n")
+# Write to files
+write_json_data("train.json", train_data)
+write_json_data("dev.json", dev_data)
+write_json_data("test.json", test_data)
 
-with open("s1_srs0_test.txt", "w") as test_out:
-    for id in test_data:
-        test_out.write(id + ": 1\n")
-
-# SERIOUS
-
-# Calculate the sizes for each partition
-srs_instances = len(srs_ids)
-train_size = int(0.8 * srs_instances)
-dev_size = int(0.1 * srs_instances)
-test_size = srs_instances - train_size - dev_size
-
-# Shuffle the data instances
-random.shuffle(srs_ids)
-
-# Split into partitions
-train_data = srs_ids[:train_size]
-dev_data = srs_ids[train_size:train_size + dev_size]
-test_data = srs_ids[train_size + dev_size:]
-
-with open("s1_srs1_train.txt", "w") as train_out:
-    for id in train_data:
-        train_out.write(id + ": 0\n")
-
-with open("s1_srs1_dev.txt", "w") as dev_out:
-    for id in dev_data:
-        dev_out.write(id + ": 0\n")
-
-with open("s1_srs1_test.txt", "w") as test_out:
-    for id in test_data:
-        test_out.write(id + ": 0\n")
+# Output the count of sarcastic and unmarked instances included
+print(f"Number of sarcastic instances included: {len(sarc_ids)}")
+print(f"Number of unmarked instances included: {len(unmarked_ids)}")
