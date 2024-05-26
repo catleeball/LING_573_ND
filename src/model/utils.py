@@ -40,7 +40,10 @@ def preprocess_data(raw_data, tokenizer, context=False, sand=False):
     encoded_dataset = dataset.map(preprocess_func_context) if context else dataset.map(preprocess_func)  
 
     # training doesn't work if there are text columns
-    encoded_dataset = encoded_dataset.select_columns(['input_ids', "token_type_ids", "attention_mask", "label"])    
+    if "token_type_ids" in encoded_dataset.column_names:
+        encoded_dataset = encoded_dataset.select_columns(['input_ids', "token_type_ids", "attention_mask", "label"])  
+    else:
+        encoded_dataset = encoded_dataset.select_columns(['input_ids', "attention_mask", "label"])    
     return encoded_dataset.with_format("torch")
 
 
