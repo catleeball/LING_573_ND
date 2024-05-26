@@ -18,7 +18,20 @@ def load_model(model_checkpoint, roberta=False):
     return model, tokenizer
 
 
-def preprocess_data(raw_data, tokenizer, context=False):
+def preprocess_data_sand(raw_data, tokenizer):
+    def preprocess_func(data):
+        return tokenizer(data["text"], truncation=True, max_length=512)
+    
+    data = list(raw_data.values())
+    dataset = Dataset.from_list(data)
+
+    encoded_dataset = dataset.map(preprocess_func)  
+
+    encoded_dataset = encoded_dataset.remove_columns(['text'])    # training doesn't work if there are text columns
+    return encoded_dataset.with_format("torch")
+
+
+def preprocess_data_sarc(raw_data, tokenizer, context=False):
     def preprocess_func(data):
         return tokenizer(data["response"], truncation=True, max_length=512)
     
