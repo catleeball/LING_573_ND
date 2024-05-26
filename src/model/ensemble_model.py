@@ -18,6 +18,7 @@ parser.add_argument('--load_preds', type=str, nargs='+', help='List of filenames
 parser.add_argument('--ensemble_file', type=str, help='Name of .pkl file to save the final decision tree to (or load from).', required=True)
 parser.add_argument('--output_file', type=str, help="The file to output the ensemble's predictions to.")
 parser.add_argument('--max_depth', type=int, default=None, help="The maximum depth of the decision tree.")
+parser.add_argument('--min_split', type=int, default=2, help="The minimum number of samples required to split an internal node.")
 parser.add_argument('--criterion', type=str, default="gini", help="The function to measure quality of a split. (gini, entropy, log_loss)")
 args = parser.parse_args()
 
@@ -46,7 +47,8 @@ if args.train:
     # train decision tree
     print("Training the ensemble model...")
 
-    ensemble_clf = tree.DecisionTreeClassifier(max_depth=args.max_depth, 
+    ensemble_clf = tree.DecisionTreeClassifier(max_depth=args.max_depth,
+                                            min_samples_split=args.min_split, 
                                             criterion=args.criterion)
     ensemble_clf = ensemble_clf.fit(ensemble_input, true_labels)
 
