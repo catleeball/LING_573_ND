@@ -1,5 +1,6 @@
 import json
 import random
+import re
 import sys
 
 if len(sys.argv) != 2:
@@ -22,6 +23,11 @@ with open("sarc_authors.txt", "r") as f:
 
 print(sarc_authors)
 
+# Function to remove URLs from text
+def remove_urls(text):
+    url_pattern = re.compile(r'http\S+|www\.\S+')
+    return url_pattern.sub(r'', text)
+
 # Read input data
 data_dict = {}
 with open(input_file, "r") as data:
@@ -42,8 +48,11 @@ with open(input_file, "r") as data:
         author = json_line.get('author')
         text = json_line.get('text')
 
-        if text == "deleted" or text == "removed":
+        if text == "deleted" or text == "removed" or "I am a bot" in text:
             continue
+
+        # Remove URLs from the text
+        text = remove_urls(text)
 
         data_dict[id] = {"text": text, "label": None}
 
