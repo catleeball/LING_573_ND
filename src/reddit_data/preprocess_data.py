@@ -17,8 +17,8 @@ URL_REGEX = re.compile(r'''
 ['"(]*http[\S)'"$]+
 ''')
 # TONE_INDICATOR_REGEX = re.compile(r'([^\S]/s[\S$]|[^\S]/sarcasm[\S$]|[^\S]/sarcastic[\S$]|[^\S]/serious[\S$]|[^\S]/srs[\S$])')
-SARCASM_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]s[\S$.,?!]?|[^\s]?[/\\]sarcasm[\S$.,?!]?|[^\s]?[/\\]sarcastic[\S$.,?!]?)')
-SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\S$.,?!]?|[^\s]?[/\\]srs[\S$.,?!]?)')
+SARCASM_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]s[\s$.,?!]?|[^\s]?[/\\]sarcasm[\s$.,?!]?|[^\s]?[/\\]sarcastic[\s$.,?!]?)')
+SERIOUS_INDICATOR_REGEX = re.compile(r'([^\s]?[/\\]serious[\s$.,?!]?|[^\s]?[/\\]srs[\s$.,?!]?)')
 
 BAD_ID = 'BAD'
 BAD_JSON = {'text': '', 'id': BAD_ID, 'metadata': {}}
@@ -79,6 +79,7 @@ class EmptyPostFilter(BaseFilter):
 #     name = 'Filter to only ND subreddits'
 #     subreddits = ('adhd', 'adhdwomen', 'aspergirls', 'autismtranslated', 'autismmemes', 'autisticpride', 'autism',
 #                   'autisticadults', 'autisminwomen', 'neurodivergent', 'neurodivergentlbgtq',)
+#
 #     def filter(self, doc: Document) -> bool | Tuple[bool, str]:
 #         if doc.metadata['subreddit'].lower() in self.subreddits:
 #             yield True
@@ -152,7 +153,7 @@ def clean_and_classify():
         # we set ensure_ascii=True, use minimal separators, and we assert the serialized strings can be deserialized
         JsonlWriter(
             output_folder=TONE_INDICATOR_DIR,
-            output_filename='data.jsonl',
+            output_filename='regex_retry_data.jsonl',
             compression=None,
             adapter=jsonl_writer_adapter
         )
