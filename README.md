@@ -31,10 +31,12 @@ $ pip list --format=freeze > requirements.txt
 After **activating your conda environment** with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
 
 ### Running end-to-end:
-The following script runs the data preprocessing and model evaluation on the dev set, end to end. This is also the script used in `D2.cmd`.
+The following script runs the data preprocessing and model evaluation on the dev set, end to end, for all 4 models: 1) baseline, 2) with context, 3) with RoBERTa, and 4) with context + RoBERTa. This is also the script used in `D3.cmd`.
 ```shell
-$ src/run_evaluate.sh
+$ src/D3_run_evaluate.sh
 ```
+
+**If you do not have the dev set ("data/sarc/dev-comments-balanced.json")**: You will need to edit `src/D3_run_evaluate.sh` slightly. Please comment in lines 21-23 to collect and partition the dev set.
 
 ### Running modularly:
 #### Data Pre-processing
@@ -61,9 +63,15 @@ $ docker-compose up -d train-context-model  # or other service name
 
 #### Evaluation
 ```shell
-$ python -m src.model.evaluation
+$ python -m src.model.evaluation <hf-model-name> <test-file> <model-output-file> <results-file>
 ```
-The src/model/evaluate.py script in this repo evaluates our trained model and produces `outputs/D2/d2.out` and `results/D2_scores.out`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
+The src/model/evaluate.py script in this repo evaluates our trained model and produces the files in `outputs/` and `results/`. If you have data to evaluate on (e.g., a dev or test set) and you are not re-training your own model, this is the only step you need to run.
 
-Note that `outputs/D2/d2.out` contains a printed tensor of the probabilities for each class label, so the highest probability represents the model prediction. The first column represents 0 or Not Sarcastic and the second column represents 1 or Sarcastic. If running for your own model, note that the `model_name` variable must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
+There are additional flags available for use in src/model/evaluate.py:
+- `--context` includes context comments when pre-processing the given `<test-file>`.
+- `--append_metrics` opens the `<results-file>` in append mode, as opposed to overwriting the file contents.
+- `--roberta` uses the pretrained RoBERTa tokenizer, as opposed to the BERT tokenizer.
 
+These flags should match the loaded model; for example, if your `<hf-model-name>` is a fine-tuned RoBERTa model, you should use the `--roberta` flag. Examples of these flags are in `src/D3_run_evaluate.sh`.
+
+If running for your own model, note that the `<hf-model-name>` argument must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".

@@ -26,19 +26,13 @@ eval_filename = data_dir / "dev-comments-balanced.json"
 # LOAD MODEL
 print("Loading model...")
 pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
-id2label = {0: "not_sarcastic", 1: "sarcastic"} 
+model, tokenizer = load_model(pretrained_checkpoint, roberta=args.roberta)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Training model using device: {device}")
 print(f"Training model id: {model_id}")
 print(f"Using pretrained: {pretrained_checkpoint}")
 
-
-tokenizer = AutoTokenizer.from_pretrained(pretrained_checkpoint, use_fast=True)
-if args.roberta:
-    model = RobertaForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)
-else: 
-    model = BertForSequenceClassification.from_pretrained(pretrained_checkpoint, id2label=id2label)
 
 # LOAD DATA
 print("Loading data...")

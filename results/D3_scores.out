@@ -1,0 +1,28 @@
+Model: dabagyan/bert-sarcasm-model
+test_loss: 0.5875942707061768
+test_f1: 0.7250345144960884
+test_runtime: 339.3359
+test_samples_per_second: 75.76
+test_steps_per_second: 1.185
+
+Model: dabagyan/roberta-sarcasm-model
+test_loss: 0.6150315403938293
+test_f1: 0.7293629852996608
+test_runtime: 327.2589
+test_samples_per_second: 78.556
+test_steps_per_second: 1.228
+
+Model: dabagyan/bert-context-sarcasm-model
+test_loss: 0.5779610276222229
+test_f1: 0.7273433856676512
+test_runtime: 522.2239
+test_samples_per_second: 49.228
+test_steps_per_second: 0.77
+
+Model: dabagyan/roberta-context-sarcasm-model
+test_loss: 0.6708992123603821
+test_f1: 0.7357694208905281
+test_runtime: 519.8889
+test_samples_per_second: 49.449
+test_steps_per_second: 0.773
+
