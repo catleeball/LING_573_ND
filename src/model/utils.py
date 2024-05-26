@@ -18,38 +18,29 @@ def load_model(model_checkpoint, roberta=False):
     return model, tokenizer
 
 
-def preprocess_data_sand(raw_data, tokenizer):
+def preprocess_data_sarc(raw_data, tokenizer, context=False, sand=False):
     def preprocess_func(data):
         return tokenizer(data["text"], truncation=True, max_length=512)
-    
-    data = list(raw_data.values())
-    dataset = Dataset.from_list(data)
-
-    encoded_dataset = dataset.map(preprocess_func)  
-
-    encoded_dataset = encoded_dataset.remove_columns(['text'])    # training doesn't work if there are text columns
-    return encoded_dataset.with_format("torch")
-
-
-def preprocess_data_sarc(raw_data, tokenizer, context=False):
-    def preprocess_func(data):
-        return tokenizer(data["response"], truncation=True, max_length=512)
     
     # concatenate in reverse order, separated by special token
     def preprocess_func_context(data):
         # text = data['response'] + tokenizer.sep_token + data['posts'][-1]
-        text = data['response']
+        text = data['text']
         context = data['posts'][-1]
         return tokenizer(text, context, truncation=True, max_length=512)
 
-    data = [{"response": d["response"], 
-             "posts": d["posts"],
-             "label": int(d["label"])} for d in raw_data]
+    if sand:
+        data = list(raw_data.values())
+    else:
+        data = [{"text": d["response"], 
+                "posts": d["posts"],
+                "label": int(d["label"])} for d in raw_data]
+    
     dataset = Dataset.from_list(data)
-
     encoded_dataset = dataset.map(preprocess_func_context) if context else dataset.map(preprocess_func)  
 
-    encoded_dataset = encoded_dataset.remove_columns(['response', "posts"])    # training doesn't work if there are text columns
+    # training doesn't work if there are text columns
+    encoded_dataset = encoded_dataset.select_columns(['input_ids', "token_type_ids", "attention_mask", "labels"])    
     return encoded_dataset.with_format("torch")
 
 

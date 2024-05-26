@@ -13,24 +13,30 @@ parser.add_argument('--context', action='store_true', help='Whether or not to us
 parser.add_argument('--roberta', action='store_true', help='Whether to use RoBERTa or BERT(default).')
 parser.add_argument('--push', action='store_true', help='Push final model to HuggingFace Hub.')
 parser.add_argument('--sand', action='store_true', help='Whether to use SAND data (default is SARC).')
+parser.add_argument('--checkpoint', help='Name of model checkpoint, besides default BERT and RoBERTa.')
 args = parser.parse_args()
 
-model_id = f'{"roberta-" if args.roberta else "bert-"}{"context-" if args.context else ""}sarcasm-model'
 data_mode = "sand" if args.sand else "sarc"
+model_id = f'{data_mode}-{"roberta-" if args.roberta else "bert-"}{"context-" if args.context else ""}sarcasm-model'
 
 project_root = Path(__file__).cwd()
 data_dir = project_root / "data" / data_mode
 model_dir = project_root / "outputs" / model_id
-# train_filename = data_dir / "train-no-dev-comments-balanced.json"
-# eval_filename = data_dir / "dev-comments-balanced.json"
-train_filename = data_dir / "train.json"
-eval_filename = data_dir / "dev.json"
+
+if args.sand:
+    train_filename = data_dir / "train.json"
+    eval_filename = data_dir / "dev.json"
+else:
+    train_filename = data_dir / "train-no-dev-comments-balanced.json"
+    eval_filename = data_dir / "dev-comments-balanced.json"
 
 
 # LOAD MODEL
 print("Loading model...")
-# pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
-pretrained_checkpoint = "dabagyan/roberta-sarcasm-model"
+if args.checkpoint:
+    pretrained_checkpoint = args.checkpoint
+else:
+    pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
 model, tokenizer = load_model(pretrained_checkpoint, roberta=args.roberta)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -43,17 +49,11 @@ print(f"Using pretrained: {pretrained_checkpoint}")
 print("Loading data...")
 with open(train_filename) as f:
     train_data_raw = json.load(f)
-if args.sand:   
-    train_dataset = preprocess_data_sand(train_data_raw, tokenizer)
-else:
-    train_dataset = preprocess_data_sarc(train_data_raw, tokenizer, context=args.context)
+train_dataset = preprocess_data(train_data_raw, tokenizer, context=args.context, sand=args.sand)
 
 with open(eval_filename) as f:
     eval_data_raw = json.load(f)
-if args.sand:
-    eval_dataset = preprocess_data_sand(eval_data_raw, tokenizer) 
-else:
-    eval_dataset = preprocess_data_sarc(eval_data_raw, tokenizer, context=args.context) 
+eval_dataset = preprocess_data(eval_data_raw, tokenizer, context=args.context, sand=args.sand) 
 
 
 # TRAIN MODEL
