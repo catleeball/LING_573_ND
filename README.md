@@ -10,6 +10,7 @@
 - [dabagyan/bert-context-sarcasm-model](https://huggingface.co/dabagyan/bert-context-sarcasm-model)
 - [dabagyan/roberta-sarcasm-model](https://huggingface.co/dabagyan/roberta-sarcasm-model)
 - [dabagyan/roberta-context-sarcasm-model](https://huggingface.co/dabagyan/roberta-context-sarcasm-model)
+- [dabagyan/sand-roberta-sarcasm-model](https://huggingface.co/dabagyan/sand-roberta-sarcasm-model)
 
 ## Getting started
 #### Installation
@@ -47,6 +48,8 @@ $ src/D4_run_evaluate.sh
 NOTE: Our `D4_run_evaluate.sh` script takes a long time to run, as it runs our model on all evaluation sets (dev and test). If you would like to run **just the evaluation set of the adaptation task**, comment out lines 26-70.
 
 Furthermore, because the ensemble model takes predictions from 2 base models as input, our pre-saved base model predictions can be found under their respective folders in `outputs/`. There are comments in `D4_run_evaluate.sh` indicating what lines can be commented out to use these pre-saved predictions as input to the ensemble model.
+
+This script also evaluates `dabagyan/sand-roberta-sarcasm-model`, which is the roberta-sarcasm-model finetuned on the SAND data, on all 4 evaluation sets as well.
 
 ### Running modularly:
 #### Data Pre-processing

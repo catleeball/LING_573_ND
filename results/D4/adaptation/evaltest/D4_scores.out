@@ -3,3 +3,10 @@ Evaluation Data: data/scraped/test.json
 	F1 score: 0.1178099701746911
 
 
+Model: dabagyan/sand-roberta-sarcasm-model
+test_loss: 0.3259006142616272
+test_f1: 0.8851383239319505
+test_runtime: 339.8541
+test_samples_per_second: 141.784
+test_steps_per_second: 1.109
+

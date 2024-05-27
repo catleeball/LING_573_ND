@@ -15,6 +15,7 @@ parser.add_argument('metrics_file', help='The name of the file to print model me
 parser.add_argument('--context', action='store_true', help='Include context comments when pre-processing evaluation data.')
 parser.add_argument('--append_metrics', action='store_true', help='Append model metrics to metrics file instead of overwriting.')
 parser.add_argument('--roberta', action='store_true', help='Whether the model uses ROBERTA or not (determines tokenizer).')
+parser.add_argument('--sand', action='store_true', help='Whether input is SAND data (default is SARC).')
 
 args = parser.parse_args()
 
@@ -25,7 +26,7 @@ model, tokenizer = load_model(args.model_name, roberta=args.roberta)
 with open(args.test_filename) as f:
     test_data_raw = json.load(f)
 
-encoded_test_dataset = preprocess_data(test_data_raw, tokenizer, context=args.context)
+encoded_test_dataset = preprocess_data(test_data_raw, tokenizer, context=args.context, sand=args.sand)
 
 # Define the training arguments
 training_args = TrainingArguments(

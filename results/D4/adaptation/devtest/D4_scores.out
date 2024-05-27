@@ -3,3 +3,23 @@ Evaluation Data: data/scraped/dev.json
 	F1 score: 0.11604217124946574
 
 
+Model: dabagyan/sand-roberta-sarcasm-model
+test_loss: 0.3271898627281189
+test_f1: 0.8841251970276964
+test_runtime: 336.5082
+test_samples_per_second: 143.343
+test_steps_per_second: 1.12
+Model: dabagyan/sand-roberta-sarcasm-model
+test_loss: 0.3271898627281189
+test_f1: 0.8841251970276964
+test_runtime: 336.5082
+test_samples_per_second: 143.343
+test_steps_per_second: 1.12
+
+Model: dabagyan/sand-roberta-sarcasm-model
+test_loss: 0.3271898627281189
+test_f1: 0.8841251970276964
+test_runtime: 337.9895
+test_samples_per_second: 142.714
+test_steps_per_second: 1.115
+

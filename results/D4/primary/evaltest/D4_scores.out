@@ -3,3 +3,10 @@ Evaluation Data: data/sarc/test-comments-balanced.json
 	F1 score: 0.7286364608475145
 
 
+Model: dabagyan/sand-roberta-sarcasm-model
+test_loss: 1.698836088180542
+test_f1: 0.023623236564661813
+test_runtime: 129.8554
+test_samples_per_second: 497.985
+test_steps_per_second: 3.897
+
