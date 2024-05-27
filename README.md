@@ -56,6 +56,7 @@ $ src/dev_partition/make_dev_set.sh
 This script retrieves the relevant pieces of the SARC dataset, partitions the original training set into our training and dev sets, and converts the original .csv file into a JSON with the text and label data needed to run the model. *Comment in the last line of this file to also create the training JSON.*
 
 #### Training 
+##### BERT and RoBERTa:
 ```shell
 $ python -m src.model.train_model [--context] [--roberta] [--push]
 ```
@@ -70,8 +71,20 @@ For running training using docker-compose,
 ```shell
 $ docker-compose up -d train-context-model  # or other service name
 ```
+##### Ensemble Model:
+```shell
+$ python -m src.model.evaluate_base_model <insert-model-name> <insert/path/to/data> <insert/path/to/predictions> [--roberta]
+```
+This command outputs the predictions of a base model to a file. Examples of these `.txt` files can be found in `outputs/D4/`. The datapath should point to your training data.
+
+```shell
+$ python -m src.model.ensemble_model --train --load_preds <insert/path/to/predictions_1> ... <.../predictions_n> --ensemble_file <insert/path/for/ensemble> --data_file <insert/path/to/data> [--max_depth] [--min_split] [--criterion]
+```
+This command takes multiple prediction files (each output by the previous command), concatenates the predictions, and uses them as input for an ensemble model. The optional flags `--max depth`, `--min_split`, and `--criterion` correspond to the arguments used when initializing the `DecisionTreeClassifier` from scikit-learn.
+
 
 #### Evaluation
+##### BERT and RoBERTa:
 ```shell
 $ python -m src.model.evaluation <hf-model-name> <test-file> <model-output-file> <results-file>
 ```
@@ -85,3 +98,14 @@ There are additional flags available for use in src/model/evaluate.py:
 These flags should match the loaded model; for example, if your `<hf-model-name>` is a fine-tuned RoBERTa model, you should use the `--roberta` flag. Examples of these flags are in `src/D3_run_evaluate.sh`.
 
 If running for your own model, note that the `<hf-model-name>` argument must match the name of your Hugging Face Model Hub repo, beginning with your username. Ex: "Jade13/LING_573_ND_Trainer_D2_NoDev".
+
+##### Ensemble Model:
+```shell
+$ python -m src.model.evaluate_base_model <insert-model-name> <insert/path/to/data> <insert/path/to/predictions> [--roberta] [--sand]
+```
+This command is similar to the training command. The datapath should point to your evaluation data. `--sand` should be used to indicate whether your evaluation data is SAND data. (By default, it is processed as SARC data.) Note that you can train on SAND data using this same flag, but it hasn't been fully tested.
+
+```shell
+$ python -m src.model.ensemble_model --load_preds <insert/path/to/predictions_1> ... <.../predictions_n> --ensemble_file <insert/path/to/ensemble> --data_file <insert/path/to/data> --output_file <insert/path/for/output> --results_file <insert/path/for/metrics> [--sand]
+```
+This command evaluates the performance of the ensemble model and appends the F1-score to a specified results file. Again, the `--sand` command should be used to indicate whether the evaluation data is SAND format.
