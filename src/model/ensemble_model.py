@@ -13,14 +13,20 @@ random.seed(13)
 # Command line args
 parser = argparse.ArgumentParser(description='Train an ensemble model for sarcasm detection.')
 parser.add_argument('--train', action='store_true', help='Whether to train or evaluate the model. Evaluate by default.')
-parser.add_argument('--data_file', type=str, help='The filename of the data the base models were fed.', required=True)
-parser.add_argument('--load_preds', type=str, nargs='+', help='List of filenames for pre-existing base model outputs.', required=True)
-parser.add_argument('--ensemble_file', type=str, help='Name of .pkl file to save the final decision tree to (or load from).', required=True)
-parser.add_argument('--output_file', type=str, help="The file to output the ensemble's predictions to.")
 parser.add_argument('--max_depth', type=int, default=None, help="The maximum depth of the decision tree.")
 parser.add_argument('--min_split', type=int, default=2, help="The minimum number of samples required to split an internal node.")
 parser.add_argument('--criterion', type=str, default="gini", help="The function to measure quality of a split. (gini, entropy, log_loss)")
+
+parser.add_argument('--sand', action='store_true', help='Process the dataset in the SAND data format.')
+parser.add_argument('--data_file', type=str, help='The filename of the data the base models were fed.', required=True)
+
+parser.add_argument('--load_preds', type=str, nargs='+', help='List of filenames for pre-existing base model outputs.', required=True)
+parser.add_argument('--ensemble_file', type=str, help='Name of .pkl file to save the final decision tree to (or load from).', required=True)
+parser.add_argument('--output_file', type=str, help="The file to output the ensemble's predictions to.")
+parser.add_argument('--results_file', type=str, help="The file to output the ensemble's scores to.")
+
 args = parser.parse_args()
+
 
 # set data paths:
 project_root = Path(__file__).cwd()
@@ -29,8 +35,11 @@ model_dir = project_root / "outputs"
 # Load training labels:
 print("Loading data...")
 with open(args.data_file) as f:
-    train_data_raw = json.load(f)
-true_labels = np.array([int(d["label"]) for d in train_data_raw])
+    data_raw = json.load(f)
+if args.sand:
+    true_labels = np.array([int(data_raw[d]["label"]) for d in data_raw])
+else:
+    true_labels = np.array([int(d["label"]) for d in data_raw])
 
 # Load base model predictions:
 print("Loading existing base model predictions...")
@@ -76,7 +85,7 @@ else:
             gold = true_labels[idx]
             f.write(f"pred: {pred}, gold: {gold}\n")
 
-    with open("results/D4_scores.out", "a") as f:
+    with open(args.results_file, "a") as f:
         f.write(f"Ensemble Filename: {args.ensemble_file}\n")
         f.write(f"Evaluation Data: {args.data_file}\n")
         f.write(f"\tF1 score: {f1}\n\n\n")

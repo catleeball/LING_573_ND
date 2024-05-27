@@ -1,0 +1,5 @@
+Ensemble Filename: outputs/D4/ensembles/sarc_no_context_ensemble_model.pkl
+Evaluation Data: data/sarc/dev-comments-balanced.json
+	F1 score: 0.7281920642272657
+
+
