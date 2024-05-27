@@ -4,17 +4,19 @@ from datasets import Dataset
 from transformers import AutoTokenizer, BertForSequenceClassification
 from transformers import RobertaForSequenceClassification
 
+from typing import Optional
 
-def load_model(model_checkpoint, roberta=False):
+
+def load_model(model_checkpoint, roberta=False, device_map: Optional[str] = None):
     id2label = {0: "not_sarcastic", 1: "sarcastic"} 
 
     tokenizer_name = "roberta-base" if roberta else "google-bert/bert-base-uncased"
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
 
     if roberta:
-        model = RobertaForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label)
+        model = RobertaForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label, device_map=device_map)
     else: 
-        model = BertForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label)
+        model = BertForSequenceClassification.from_pretrained(model_checkpoint, id2label=id2label, device_map=device_map)
     return model, tokenizer
 
 

@@ -1,4 +1,21 @@
 services:
+  train-roberta-sand-model:
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: "python -u -m src.model.train_model --roberta --checkpoint dabagyan/roberta-sarcasm-model --sand --push"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0", "1"]
+              capabilities: [gpu]
   train-roberta-model:
     environment:
       - HF_TOKEN=${HF_TOKEN}

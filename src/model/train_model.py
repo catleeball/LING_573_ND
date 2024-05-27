@@ -37,7 +37,7 @@ if args.checkpoint:
     pretrained_checkpoint = args.checkpoint
 else:
     pretrained_checkpoint = "roberta-base" if args.roberta else "google-bert/bert-base-uncased" 
-model, tokenizer = load_model(pretrained_checkpoint, roberta=args.roberta)
+model, tokenizer = load_model(pretrained_checkpoint, roberta=args.roberta, device_map="auto")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Training model using device: {device}")
