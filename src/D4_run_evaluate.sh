@@ -52,6 +52,9 @@ python -m src.model.evaluate_base_model $BASE_MODEL_2 $DATA_FILE $BASE_OUTPUT_2 
 
 python -m src.model.ensemble_model --data_file $DATA_FILE --load_preds $BASE_OUTPUT_1 $BASE_OUTPUT_2 --ensemble_file $ENSEMBLE_FILE --output_file $OUTPUT_FILE  --results_file $RESULTS_FILE --sand
 
+python -m src.model.evaluation $FT_MODEL $DATA_FILE $FT_OUTPUT_FILE $FT_RESULTS_FILE  --roberta --append_metrics
+
+
 # #------------------------------------------------
 
 # SARC Eval Test Set: -------------------------
@@ -82,3 +85,7 @@ python -m src.model.evaluate_base_model $BASE_MODEL_1 $DATA_FILE $BASE_OUTPUT_1 
 python -m src.model.evaluate_base_model $BASE_MODEL_2 $DATA_FILE $BASE_OUTPUT_2 --roberta --sand
 
 python -m src.model.ensemble_model --data_file $DATA_FILE --load_preds $BASE_OUTPUT_1 $BASE_OUTPUT_2 --ensemble_file $ENSEMBLE_FILE --output_file $OUTPUT_FILE  --results_file $RESULTS_FILE --sand
+
+
+# evaluates the finetuned model on sand/sarc dev and test. will also take a while
+sh src/D4_evaluate_ft_model.sh
