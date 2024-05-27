@@ -30,13 +30,23 @@ $ pip list --format=freeze > requirements.txt
 ## Running the system
 After **activating your conda environment** with the proper requirements and system prerequisites, run the following commands. If you are not training your own model and want to evaluate our model, only run the Evaluation command. 
 
-### Running end-to-end:
-The following script runs the data preprocessing and model evaluation on the dev set, end to end, for all 4 models: 1) baseline, 2) with context, 3) with RoBERTa, and 4) with context + RoBERTa. This is also the script used in `D3.cmd`.
+### Downloading SAND Data (Adaptation Task)
+The SARC data is downloaded automatically in the evaluation script. However, the SAND data must be downloaded and placed in the `data/scraped/` directory manually. **Please download sand_data.tar.gz** from the following link: [https://huggingface.co/datasets/Jade13/SAND/tree/main](https://huggingface.co/datasets/Jade13/SAND/tree/main). Unzip it using the command below:
 ```shell
-$ src/D3_run_evaluate.sh
+$ tar -xzf sand_data.tar.gz
 ```
 
-**If you do not have the dev set ("data/sarc/dev-comments-balanced.json")**: You will need to edit `src/D3_run_evaluate.sh` slightly. Please comment in lines 21-23 to collect and partition the dev set.
+Then place the files `dev.json` and `test.json` into the `data/scraped/` directory. They will be accessed with paths like: `data/scraped/dev.json`.
+
+### Running end-to-end:
+The following script runs the data preprocessing and model evaluation on SARC and SAND's dev and test sets, end-to-end, for our ensemble model, which uses the D3 fine-tuned BERT and RoBERTa (without context) as its base models. In other words, it runs 4 different evaluation sets. This is also the script used in `D4.cmd`.
+```shell
+$ src/D4_run_evaluate.sh
+```
+
+NOTE: Our `D4_run_evaluate.sh` script takes a long time to run, as it runs our model on all evaluation sets (dev and test). If you would like to run **just the evaluation set of the adaptation task**, comment out lines 26-70.
+
+Furthermore, because the ensemble model takes predictions from 2 base models as input, our pre-saved base model predictions can be found under their respective folders in `outputs/`. There are comments in `D4_run_evaluate.sh` indicating what lines can be commented out to use these pre-saved predictions as input to the ensemble model.
 
 ### Running modularly:
 #### Data Pre-processing
