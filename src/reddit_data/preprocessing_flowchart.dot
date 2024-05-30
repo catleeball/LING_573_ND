@@ -1,0 +1,16 @@
+// Preprocessing flowchart for presentation
+digraph G {
+  subgraph cluster_0 {
+    style=filled;
+    color=lightgrey;
+    node [style=filled,color=white];
+    "jsonl parser" -> "remove invalid chars" -> "remove URLs" -> "filter empty/deleted posts" -> "label sarc & serious" -> "write dataset";
+    label = "preprocess_data.py";
+  }
+  "reddit data" -> "filter_subreddits.fish" -> "ND_data.jsonl" -> "jsonl parser";
+  "write dataset" -> "good_data.jsonl" -> "remove_tone_indicators.py" -> "gooder_data.jsonl";
+  "reddit data" [shape=cylinder];
+  "ND_data.jsonl" [shape=cylinder];
+  "good_data.jsonl" [shape=cylinder];
+  "gooder_data.jsonl" [shape=cylinder];
+}
