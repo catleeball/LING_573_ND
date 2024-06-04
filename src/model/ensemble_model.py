@@ -3,6 +3,7 @@ import json
 import numpy as np
 import random
 import pickle
+import torch
 from pathlib import Path
 from sklearn import tree
 from sklearn.metrics import f1_score
@@ -19,6 +20,7 @@ parser.add_argument('--criterion', type=str, default="gini", help="The function 
 
 parser.add_argument('--sand', action='store_true', help='Process the dataset in the SAND data format.')
 parser.add_argument('--data_file', type=str, help='The filename of the data the base models were fed.', required=True)
+parser.add_argument('--labels_only', action='store_true', help='The data file contains just the true labels of the training data.')
 
 parser.add_argument('--load_preds', type=str, nargs='+', help='List of filenames for pre-existing base model outputs.', required=True)
 parser.add_argument('--ensemble_file', type=str, help='Name of .pkl file to save the final decision tree to (or load from).', required=True)
@@ -34,12 +36,16 @@ model_dir = project_root / "outputs"
 
 # Load training labels:
 print("Loading data...")
-with open(args.data_file) as f:
-    data_raw = json.load(f)
-if args.sand:
-    true_labels = np.array([int(data_raw[d]["label"]) for d in data_raw])
+if args.labels_only:
+    true_labels = np.loadtxt(args.data_file)
+    true_labels = np.array(true_labels, dtype=int)
 else:
-    true_labels = np.array([int(d["label"]) for d in data_raw])
+    with open(args.data_file) as f:
+        data_raw = json.load(f)
+    if args.sand:
+        true_labels = np.array([int(data_raw[d]["label"]) for d in data_raw])
+    else:
+        true_labels = np.array([int(d["label"]) for d in data_raw])
 
 # Load base model predictions:
 print("Loading existing base model predictions...")
@@ -47,10 +53,12 @@ prediction_arrays = []
 for f in args.load_preds:
     # load base model predictions:
     predictions = np.loadtxt(f)
-    prediction_arrays.append(predictions)
+    logits_tensor = torch.tensor(predictions)
+    probabilities = torch.softmax(logits_tensor, dim=1)
+    prediction_arrays.append(probabilities[:,1])
 
 # concatenate predictions "sideways" (as features of the same instance)
-ensemble_input = np.concatenate(prediction_arrays, axis=1)
+ensemble_input = np.column_stack(prediction_arrays)
 
 if args.train:
     # train decision tree
