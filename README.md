@@ -51,6 +51,12 @@ Furthermore, because the ensemble model takes predictions from 2 base models as 
 
 This script also evaluates `dabagyan/sand-roberta-sarcasm-model`, which is the roberta-sarcasm-model finetuned on the SAND data, on all 4 evaluation sets as well.
 
+NOTE: After submitting D4's code, we continued developing our ensemble model to better accomodate both datasets. This model can be evaluated using:
+```shell
+$ src/final_run_evaluate.sh
+```
+This is also the script used in `final.cmd`. This script assumes you have downloaded both the SAND and SARC data from previous deliverables.
+
 ### Running modularly:
 #### Data Pre-processing
 ```shell
