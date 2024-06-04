@@ -24,3 +24,8 @@ test_runtime: 52.6629
 test_samples_per_second: 488.162
 test_steps_per_second: 3.817
 
+Ensemble Filename: outputs/D4/ensembles/dual_trained_roberta_ensemble_model.pkl
+Evaluation Data: data/sarc/dev-comments-balanced.json
+	F1 score: 0.6745767115576149
+
+
